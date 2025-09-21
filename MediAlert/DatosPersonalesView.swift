@@ -85,7 +85,8 @@ struct DatosPersonalesView: View {
                     Text("SOS")
                         .font(.headline)
                 }
-                Image(systemName: "book.fill")
+                NavigationLink {GuiasView()} label: {Image(systemName: "book.fill")}
+                // Image(systemName: "book.fill")
                 Image(systemName: "person.crop.circle.fill")
             }
             .font(.title2)

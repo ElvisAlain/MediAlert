@@ -49,7 +49,8 @@ struct BotiquinView: View {
                             .shadow(color: .black.opacity(0.15), radius: 6, y: 2)
                         Text("SOS").font(.headline)
                     }
-                    Image(systemName: "book.fill")
+                    NavigationLink {GuiasView()} label: {Image(systemName: "book.fill")}
+                    // Image(systemName: "book.fill")
                     NavigationLink { DatosPersonalesView() } label: {
                         Image(systemName: "person.crop.circle.fill")
                     }
