@@ -74,7 +74,7 @@ fun RegistrationScreen() {
             horizontalArrangement = Arrangement.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.cmica_logo),
+                painter = painterResource(id = R.drawable.ic_registro_filled),
                 contentDescription = "Registro Icon",
                 modifier = Modifier.size(24.dp)
             )

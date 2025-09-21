@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">cmica</string>
     <string name="title_activity_geolocalizacion">GeolocalizacionActivity</string>
+    <string name="title_activity_datos_personales">DatosPersonalesActivity</string>
+    <string name="title_activity_notificaciones">NotificacionesActivity</string>
+    <string name="title_activity_botiquin">BotiquinActivity</string>
+    <string name="title_activity_guias">GuiasActivity</string>
 </resources>

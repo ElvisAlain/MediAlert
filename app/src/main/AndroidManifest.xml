@@ -12,6 +12,26 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cmica">
         <activity
+            android:name=".GuiasActivity"
+            android:exported="false"
+            android:label="@string/title_activity_guias"
+            android:theme="@style/Theme.Cmica" />
+        <activity
+            android:name=".BotiquinActivity"
+            android:exported="false"
+            android:label="@string/title_activity_botiquin"
+            android:theme="@style/Theme.Cmica" />
+        <activity
+            android:name=".NotificacionesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_notificaciones"
+            android:theme="@style/Theme.Cmica" />
+        <activity
+            android:name=".DatosPersonalesActivity"
+            android:exported="false"
+            android:label="@string/title_activity_datos_personales"
+            android:theme="@style/Theme.Cmica" />
+        <activity
             android:name=".GeolocalizacionActivity"
             android:exported="false"
             android:label="@string/title_activity_geolocalizacion"
