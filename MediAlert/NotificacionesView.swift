@@ -17,7 +17,11 @@ struct NotificacionesView: View {
                     .font(.title3.weight(.semibold))
                 Spacer()
                 HStack(spacing: 14) {
-                    Image(systemName: "cross.case")
+                    NavigationLink{
+                        BotiquinView()
+                    } label: {
+                        Image(systemName: "cross.case")
+                    }
                     Image(systemName: "globe")
                 }
                 .font(.title3)

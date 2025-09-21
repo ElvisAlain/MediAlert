@@ -16,7 +16,11 @@ struct GeolocalizacionView: View {
                     .font(.title3).bold()
                 Spacer()
                 HStack(spacing: 14) {
-                    Image(systemName: "cross.case")
+                    NavigationLink{
+                        BotiquinView()
+                    } label: {
+                        Image(systemName: "cross.case")
+                    }
                     Image(systemName: "globe")
                 }
                 .font(.title3)
