@@ -11,8 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.a01738457.cmica.ui.theme.CmicaTheme
@@ -31,17 +30,20 @@ class GuiasActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CmicaTheme {
-                GuiasScreen()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color.White
+                ) {
+                    GuiasScreen()
+                }
             }
         }
     }
 }
 
-
-
 @Composable
 fun GuiasScreen() {
-    var page by remember { mutableStateOf(0) }
+    var page by remember { mutableIntStateOf(0) }
 
     Scaffold(
         bottomBar = { BottomTabBar() }
@@ -61,7 +63,8 @@ fun GuiasScreen() {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_book_filled),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.width(6.dp))
                 Text("Guía", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
@@ -69,11 +72,13 @@ fun GuiasScreen() {
                 Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_cross_case),
-                        contentDescription = "Botiquín"
+                        contentDescription = "Botiquín",
+                        modifier = Modifier.size(24.dp)
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.ic_globe),
-                        contentDescription = "Globo"
+                        contentDescription = "Globo",
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -103,11 +108,13 @@ fun BottomTabBar() {
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_house_filled),
-            contentDescription = "Home"
+            contentDescription = "Home",
+            modifier = Modifier.size(24.dp)
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_bell_filled),
-            contentDescription = "Notificaciones"
+            contentDescription = "Notificaciones",
+            modifier = Modifier.size(24.dp)
         )
 
         // SOS Button
@@ -123,11 +130,13 @@ fun BottomTabBar() {
 
         Icon(
             painter = painterResource(id = R.drawable.ic_book_filled),
-            contentDescription = "Guía"
+            contentDescription = "Guía",
+            modifier = Modifier.size(24.dp)
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_person_circle_filled),
-            contentDescription = "Perfil"
+            contentDescription = "Perfil",
+            modifier = Modifier.size(24.dp)
         )
     }
 }
@@ -142,32 +151,40 @@ fun GuiaSintomasPage() {
     ) {
         TitleSection("Síntomas en la Anafilaxia")
 
-        CardSection("1. Piel", R.drawable.guias_piel, listOf(
-            "Ronchas rojas que pican.",
-            "Hinchazón y/o picor en palmas de las manos.",
-            "Hinchazón y/o picor en plantas de los pies."
-        ))
+        CardSection(
+            "1. Piel", R.drawable.guias_piel, listOf(
+                "Ronchas rojas que pican.",
+                "Hinchazón y/o picor en palmas de las manos.",
+                "Hinchazón y/o picor en plantas de los pies."
+            )
+        )
 
-        CardSection("2. Respiratorio", R.drawable.guias_respiratorio, listOf(
-            "Tos.",
-            "Sensación de algo atorado en la garganta.",
-            "Silbidos en el pecho.",
-            "Falta de aire."
-        ))
+        CardSection(
+            "2. Respiratorio", R.drawable.guias_respiratorio, listOf(
+                "Tos.",
+                "Sensación de algo atorado en la garganta.",
+                "Silbidos en el pecho.",
+                "Falta de aire."
+            )
+        )
 
-        CardSection("3. Cardiovascular", R.drawable.guias_cardiovascular, listOf(
-            "Palpitaciones.",
-            "Mareo.",
-            "Baja presión.",
-            "Desmayo."
-        ))
+        CardSection(
+            "3. Cardiovascular", R.drawable.guias_cardiovascular, listOf(
+                "Palpitaciones.",
+                "Mareo.",
+                "Baja presión.",
+                "Desmayo."
+            )
+        )
 
-        CardSection("4. Digestivo", R.drawable.guias_digestivo, listOf(
-            "Náuseas.",
-            "Vómito.",
-            "Diarrea.",
-            "Sabor metálico en la boca."
-        ))
+        CardSection(
+            "4. Digestivo", R.drawable.guias_digestivo, listOf(
+                "Náuseas.",
+                "Vómito.",
+                "Diarrea.",
+                "Sabor metálico en la boca."
+            )
+        )
     }
 }
 
@@ -181,26 +198,32 @@ fun GuiaQueHacerPage() {
     ) {
         TitleSection("¿Qué hacer cuando se presenta una anafilaxia?")
 
-        CardSection("1. Reconocer la anafilaxia", R.drawable.guias_anafilexia, listOf(
-            "Reacción alérgica grave de presentación rápida y potencialmente mortal.",
-            "Entre 50–112 episodios por cada 100,000 personas/año.",
-            "Mortalidad estimada entre 0.05% y 2%.",
-            "(Consulta la guía de síntomas para reconocerla)."
-        ))
+        CardSection(
+            "1. Reconocer la anafilaxia", R.drawable.guias_anafilexia, listOf(
+                "Reacción alérgica grave de presentación rápida y potencialmente mortal.",
+                "Entre 50–112 episodios por cada 100,000 personas/año.",
+                "Mortalidad estimada entre 0.05% y 2%.",
+                "(Consulta la guía de síntomas para reconocerla)."
+            )
+        )
 
-        CardSection("2. Retirado del alérgeno", R.drawable.guias_retirado, listOf(
-            "Suspender fármacos sospechosos.",
-            "Retirar aguijón tras picadura de abeja (prima la rapidez).",
-            "No provocar vómito; retirar restos de alimento en la boca.",
-            "Retirar productos de látex si se sospecha alergia."
-        ))
+        CardSection(
+            "2. Retirado del alérgeno", R.drawable.guias_retirado, listOf(
+                "Suspender fármacos sospechosos.",
+                "Retirar aguijón tras picadura de abeja (prima la rapidez).",
+                "No provocar vómito; retirar restos de alimento en la boca.",
+                "Retirar productos de látex si se sospecha alergia."
+            )
+        )
 
-        CardSection("3. Aplicar la Adrenalina RÁPIDAMENTE", R.drawable.guias_aplicacion, listOf(
-            "Preparar el autoinyector/jeringa con la dosis correcta.",
-            "Sitio: cara anterolateral del muslo, a medio camino entre cadera y rodilla.",
-            "Inyección intramuscular con ángulo de 90°.",
-            "Retirar aguja y masajear suavemente la zona."
-        ))
+        CardSection(
+            "3. Aplicar la Adrenalina RÁPIDAMENTE", R.drawable.guias_aplicacion, listOf(
+                "Preparar el autoinyector/jeringa con la dosis correcta.",
+                "Sitio: cara anterolateral del muslo, a medio camino entre cadera y rodilla.",
+                "Inyección intramuscular con ángulo de 90°.",
+                "Retirar aguja y masajear suavemente la zona."
+            )
+        )
     }
 }
 
@@ -265,5 +288,13 @@ fun CardSection(title: String, imageRes: Int, bullets: List<String>) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GuiasScreenPreview() {
+    CmicaTheme {
+        GuiasScreen()
     }
 }

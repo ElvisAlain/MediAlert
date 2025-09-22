@@ -12,14 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cmica">
         <activity
-            android:name=".GuiasActivity"
-            android:exported="false"
-            android:label="@string/title_activity_guias"
-            android:theme="@style/Theme.Cmica" />
-        <activity
             android:name=".BotiquinActivity"
             android:exported="false"
             android:label="@string/title_activity_botiquin"
+            android:theme="@style/Theme.Cmica" />
+        <activity
+            android:name=".GuiasActivity"
+            android:exported="false"
+            android:label="@string/title_activity_guias"
             android:theme="@style/Theme.Cmica" />
         <activity
             android:name=".NotificacionesActivity"

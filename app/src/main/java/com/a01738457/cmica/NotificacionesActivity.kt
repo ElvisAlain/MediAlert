@@ -89,7 +89,7 @@ fun NotificacionesScreen() {
                     detalle = "Has llamado al 911, se ha mandado mensaje a tu contacto de emergencia → cuando se presione el botón SOS",
                     trailing = {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_phone_filled), // <-- Se cambió a Image y se quitó el Box y Text
+                            painter = painterResource(id = R.drawable.ic_phone_filled),
                             contentDescription = "Ícono de llamada SOS",
                             modifier = Modifier.size(40.dp)
                         )

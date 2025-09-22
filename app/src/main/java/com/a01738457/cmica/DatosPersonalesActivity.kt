@@ -28,8 +28,6 @@ class DatosPersonalesActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CmicaTheme {
-                // El Scaffold se usaba en el código inicial,
-                // pero con un diseño personalizado, podemos usar Surface directamente.
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = Color.White
@@ -72,8 +70,6 @@ fun TopBar() {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // El ícono de "info.circle" del diseño original no existe en tus recursos.
-        // Asumiendo que "ic_localization" es una opción válida para la pantalla de datos
         Icon(
             painter = painterResource(id = R.drawable.ic_localization),
             contentDescription = "Información",
@@ -104,7 +100,6 @@ fun TopBar() {
 
 @Composable
 fun PerfilSection() {
-    // La sección de la foto de perfil y el nombre de Camila
     Row(
         modifier = Modifier
             .fillMaxWidth()

@@ -139,7 +139,7 @@ fun RegistrationScreen() {
                     .fillMaxWidth()
                     .height(56.dp)
                     .border(1.dp, Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                    .clickable { /* Abre el menú de selección de idioma */ },
+                    .clickable {},
                 contentAlignment = Alignment.CenterStart
             ) {
                 Row(
@@ -208,7 +208,7 @@ fun RegistrationScreen() {
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia arriba
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
