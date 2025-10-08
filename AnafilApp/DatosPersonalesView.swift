@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct DatosPersonalesView: View {
+    @EnvironmentObject var userData: UserData
+    
     var body: some View {
         VStack(spacing: 16) {
 
@@ -21,7 +23,7 @@ struct DatosPersonalesView: View {
                     } label: {
                         Image(systemName: "cross.case")
                     }
-                    Image(systemName: "globe")
+                    Image(systemName: userData.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
                 }
                 .font(.title3)
             }
@@ -39,7 +41,7 @@ struct DatosPersonalesView: View {
                 }
                 .frame(width: 56, height: 56)
 
-                Text("Camila")
+                Text(userData.nombre)
                     .font(.title3.weight(.semibold))
                 Image(systemName: "pencil")
                     .foregroundStyle(.primary)
@@ -50,10 +52,10 @@ struct DatosPersonalesView: View {
             // Lista de chips
             ScrollView {
                 VStack(spacing: 14) {
-                    ChipRow(titulo: "Nombre:", valor: "Camila", editable: true)
-                    ChipRow(titulo: "Apellidos:", valor: "Juárez", editable: true)
-                    ChipRow(titulo: "Teléfono:", valor: "2354687958", editable: true)
-                    ChipRow(titulo: "Contacto Emergencias:", valor: "2368545879", editable: true)
+                    ChipRow(titulo: "Nombre:", valor: userData.nombre, editable: true)
+                    ChipRow(titulo: "Apellidos:", valor: userData.apellidos, editable: true)
+                    ChipRow(titulo: "Teléfono:", valor: userData.telefono, editable: true)
+                    ChipRow(titulo: "Contacto Emergencias:", valor: userData.contactoEmergencia, editable: true)
                     ChipRow(titulo: "Dirección:", valor: "Avenida José María", editable: true)
                     ChipRow(titulo: "Sexo:", valor: "Mujer", editable: true)
                     ChipRow(titulo: "Peso:", valor: "60 Kg", editable: true)
