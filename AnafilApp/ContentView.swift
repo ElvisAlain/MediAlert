@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     
@@ -16,16 +17,13 @@ struct ContentView: View {
     @State private var contactoEmergencia: String = ""
     @State private var idiomaSeleccionado: String = "Español" // Por defecto
     
+    
     // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
     @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
-    @AppStorage("nombre_key") var storedNombre: String = ""
-    @AppStorage("apellidos_key") var storedApellidos: String = ""
-    @AppStorage("telefono_key") var storedTelefono: String = ""
-    @AppStorage("emergencia_key") var storedEmergencia: String = ""
-    @AppStorage("idioma_key") var storedIdioma: String = "Español"
-    
-    @EnvironmentObject var userData: UserData // Pasar datos al modelo compartido UserData
-    @State private var validationMessage: String? // Estados para la validación y el foco del teclado
+    // Acceso al Contexto de SwiftData para guardar datos
+    @Environment(\.modelContext) private var modelContext
+    // Estados para la validación y el foco del teclado
+    @State private var validationMessage: String?
     @FocusState private var focusedField: Field?
     
     private enum Field: Hashable { // Controlar el foco entre campos
@@ -58,20 +56,22 @@ struct ContentView: View {
     }
     
     func saveAndNavigate() {
-        // Llenar el modelo de datos observable (UserData)
-        userData.nombre = nombre
-        userData.apellidos = apellidos
-        userData.telefono = telefono
-        userData.contactoEmergencia = contactoEmergencia
-        userData.idiomaSeleccionado = idiomaSeleccionado
-        
-        // Persistir los datos en AppStorage para un futuro pre-llenado en DatosPersonalesView
-        storedNombre = nombre
-        storedApellidos = apellidos
-        storedTelefono = telefono
-        storedEmergencia = contactoEmergencia
-        storedIdioma = idiomaSeleccionado
-        
+       // Instancia del modelo Swift Data --> User
+        let newUser = User(
+            nombre: nombre,
+            apellidos: apellidos,
+            idiomaSeleccionado: idiomaSeleccionado,
+            telefono: telefono,
+            contactoEmergencia: contactoEmergencia,
+            direccion: "No especificada",
+            sexo: "No especificado",
+            peso: "N/A",
+            edad: "N/A",
+            tipoSangre: "N/A",
+            diagnostico: "N/A",
+            alergias: "N/A",
+        )
+        modelContext.insert(newUser)
         isFirstLaunch = false // Bandera
     }
     
@@ -178,4 +178,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .modelContainer(for: User.self, inMemory: true)
 }

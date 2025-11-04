@@ -6,9 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct DatosPersonalesView: View {
-    @EnvironmentObject var userData: UserData
+    @State private var isEditing: Bool = false
+    @Query(sort: \User.nombre) var users: [User] // Cargar Usuario
+    var currentUser: User? { users.first }
+    
+    private func saveChanges() {
+        isEditing = false
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -23,7 +30,7 @@ struct DatosPersonalesView: View {
                     } label: {
                         Image(systemName: "cross.case")
                     }
-                    Image(systemName: userData.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
+                    Image(systemName: currentUser?.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
                 }
                 .font(.title3)
             }
@@ -41,31 +48,49 @@ struct DatosPersonalesView: View {
                 }
                 .frame(width: 56, height: 56)
 
-                Text(userData.nombre)
+                Text(currentUser?.nombre ?? "Usuario no encontrado")
                     .font(.title3.weight(.semibold))
-                Image(systemName: "pencil")
-                    .foregroundStyle(.primary)
                 Spacer()
+                
+                Button {
+                    isEditing.toggle()
+                } label: {
+                    Text(isEditing ? "Guardar" : "Editar")
+                        .font(.callout.weight(.semibold))
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 10)
+                        .background(Color.blue)
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
+                }
             }
             .padding(.horizontal)
 
             // Lista de chips
             ScrollView {
-                VStack(spacing: 14) {
-                    ChipRow(titulo: "Nombre:", valor: userData.nombre, editable: true)
-                    ChipRow(titulo: "Apellidos:", valor: userData.apellidos, editable: true)
-                    ChipRow(titulo: "Teléfono:", valor: userData.telefono, editable: true)
-                    ChipRow(titulo: "Contacto Emergencias:", valor: userData.contactoEmergencia, editable: true)
-                    ChipRow(titulo: "Dirección:", valor: "Avenida José María", editable: true)
-                    ChipRow(titulo: "Sexo:", valor: "Mujer", editable: true)
-                    ChipRow(titulo: "Peso:", valor: "60 Kg", editable: true)
-                    ChipRow(titulo: "Edad:", valor: "30 años", editable: true)
-                    ChipRow(titulo: "Tipo de sangre:", valor: "O+", editable: true)
-                    ChipRow(titulo: "Diagnóstico:", valor: "Asma", editable: true)
-                    ChipRow(titulo: "Alergias:", valor: "Polvo, polen, ...", editable: true)
+                if let user = currentUser { // Usamos Bingings para la edición en @Binable var user = users
+                    @Bindable var user = user
+                    
+                    VStack(spacing: 14) {
+                        ChipRow(titulo: "Nombre:", text: $user.nombre, editable: isEditing)
+                        ChipRow(titulo: "Apellidos:", text: $user.apellidos, editable: isEditing)
+                        ChipRow(titulo: "Teléfono:", text: $user.telefono, editable: isEditing)
+                        ChipRow(titulo: "Contacto Emergencias:", text: $user.contactoEmergencia, editable: isEditing)
+                        ChipRow(titulo: "Dirección:", text: $user.direccion, editable: isEditing)
+                        ChipRow(titulo: "Sexo:", text: $user.sexo, editable: isEditing)
+                        ChipRow(titulo: "Peso:", text: $user.peso, editable: isEditing)
+                        ChipRow(titulo: "Edad:", text: $user.edad, editable: isEditing)
+                        ChipRow(titulo: "Tipo de sangre:", text: $user.tipoSangre, editable: isEditing)
+                        ChipRow(titulo: "Diagnóstico:", text: $user.diagnostico, editable: isEditing)
+                        ChipRow(titulo: "Alergias:", text: $user.alergias, editable: isEditing)
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                } else {
+                    Text("Cargando Datos del Usuario...")
+                        .foregroundColor(.gray)
+                        .padding()
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
             }
 
             // Tab bar (mock, estático)
@@ -102,18 +127,32 @@ struct DatosPersonalesView: View {
 // Estructura Chip
 struct ChipRow: View {
     let titulo: String
-    let valor: String
     var editable: Bool = false
+    @Binding var text: String
 
+    init(titulo: String, text: Binding<String>, editable: Bool = false) {
+        self.titulo = titulo
+        self._text = text
+        self.editable = editable
+    }
+    
     var body: some View {
         HStack {
             HStack(spacing: 2) {
                 Text(titulo)
                     .fontWeight(.semibold)
                     .foregroundStyle(Color.blue.opacity(0.9))
-                Text(valor)
+                
+                if editable {
+                    TextField("", text: $text)
+                        .textFieldStyle(.plain)
+                        .autocorrectionDisabled(true)
+                } else {
+                    Text(text)
+                }
             }
             Spacer()
+            
             if editable {
                 Image(systemName: "pencil")
                     .foregroundStyle(.secondary)

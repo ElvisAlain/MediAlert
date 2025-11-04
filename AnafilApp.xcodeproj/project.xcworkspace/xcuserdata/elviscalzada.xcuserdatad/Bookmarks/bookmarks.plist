@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>top-level-items</key>
+	<array>
+		<dict>
+			<key>destination</key>
+			<dict>
+				<key>location-parameters</key>
+				<dict>
+					<key>EndingColumnNumber</key>
+					<string>0</string>
+					<key>EndingLineNumber</key>
+					<string>23</string>
+					<key>StartingColumnNumber</key>
+					<string>0</string>
+					<key>StartingLineNumber</key>
+					<string>22</string>
+					<key>Timestamp</key>
+					<string>783923735.047605</string>
+				</dict>
+				<key>rebasable-url</key>
+				<dict>
+					<key>base</key>
+					<string>workspace</string>
+					<key>payload</key>
+					<dict>
+						<key>relative-path</key>
+						<string>AnafilApp/ContentView.swift</string>
+					</dict>
+				</dict>
+			</dict>
+			<key>text-context</key>
+			<dict>
+				<key>focused</key>
+				<string>    // Acceso al Contexto de SwiftData para guardar datos
+</string>
+				<key>leading</key>
+				<string>    // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
+    @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
+</string>
+				<key>trailing</key>
+				<string>    @Environment(\.modelContext) private var modelContext
+    // Estados para la validación y el foco del teclado
+    @State private var validationMessage: String?
+</string>
+			</dict>
+			<key>type</key>
+			<string>bookmark</string>
+		</dict>
+	</array>
+</dict>
+</plist>
