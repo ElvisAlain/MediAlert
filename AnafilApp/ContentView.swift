@@ -17,38 +17,50 @@ struct ContentView: View {
     @State private var contactoEmergencia: String = ""
     @State private var idiomaSeleccionado: String = "Español" // Por defecto
     
+    // Errores por campo
+    @State private var nombreError: String? = nil
+    @State private var apellidosError: String? = nil
+    @State private var telefonoError: String? = nil
+    @State private var contactoError: String? = nil
     
     // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
     @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
     // Acceso al Contexto de SwiftData para guardar datos
     @Environment(\.modelContext) private var modelContext
-    // Estados para la validación y el foco del teclado
-    @State private var validationMessage: String?
+    // Estados para el foco del teclado
     @FocusState private var focusedField: Field?
     
     private enum Field: Hashable { // Controlar el foco entre campos
         case nombre, apellidos, telefono, emergencia
     }
     
+    private func clearErrors() {
+        nombreError = nil
+        apellidosError = nil
+        telefonoError = nil
+        contactoError = nil
+    }
+    
     func validateForm() -> Bool {
-        validationMessage = nil
-        if nombre.isEmpty {
-            validationMessage = "Falta el nombre."
+        clearErrors() // limpiar errores anteriores
+        
+        if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar nombre
+            nombreError = "Falta el nombre."
             focusedField = .nombre
             return false
         }
-        if apellidos.isEmpty {
-            validationMessage = "Faltan los apellidos."
+        if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar apellidos
+            apellidosError = "Faltan los apellidos."
             focusedField = .apellidos
             return false
         }
-        if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) {
-            validationMessage = "El teléfono propio debe tener 10 dígitos válidos."
+        if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) { // Validar teléfono propio
+            telefonoError = "El teléfono propio debe tener 10 dígitos válidos."
             focusedField = .telefono
             return false
         }
-        if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) {
-            validationMessage = "El contacto de emergencia debe tener 10 dígitos válidos."
+        if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) { // Validar contacto de Emergencia
+            contactoError = "El contacto de emergencia debe tener 10 dígitos válidos."
             focusedField = .emergencia
             return false
         }
@@ -106,21 +118,32 @@ struct ContentView: View {
                     .font(.subheadline)
                     .foregroundColor(.gray)
                 
-                if let message = validationMessage {
-                    Text(message)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
-                
                 // Campos de texto
-                VStack(spacing: 14) {
-                    TextField("Nombre(s)", text: $nombre)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($focusedField, equals: .nombre)
-                    
-                    TextField("Apellidos", text: $apellidos)
-                        .textFieldStyle(.roundedBorder)
-                        .focused($focusedField, equals: .apellidos)
+                VStack(spacing: 6) {
+                    VStack(spacing: 6) {
+                        TextField("Nombre(s)", text: $nombre)
+                            .textFieldStyle(.roundedBorder)
+                            .focused($focusedField, equals: .nombre)
+                        if let error = nombreError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
+                        }
+                    }
+                    VStack(spacing: 6) {
+                        TextField("Apellidos", text: $apellidos)
+                            .textFieldStyle(.roundedBorder)
+                            .focused($focusedField, equals: .apellidos)
+                        if let error = apellidosError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
+                        }
+                    }
                     
                     Menu {
                         Button("Español") { idiomaSeleccionado = "Español" }
@@ -134,23 +157,40 @@ struct ContentView: View {
                                 .foregroundColor(.gray.opacity(0.6))
                                 .padding(.trailing, 8)
                         }
-                    }
-                    .frame(height: 34)
-                    .frame(maxWidth: .infinity)
-                    .overlay(
+                        .frame(height: 34)
+                        .frame(maxWidth: .infinity)
+                        .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(Color.gray.opacity(0.2))
                         )
-                    
-                    TextField("Teléfono (10 dígitos)", text: $telefono)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad) // Solo números
-                        .focused($focusedField, equals: .telefono)
-                    
-                    TextField("Contacto de emergencia (Teléfono)", text: $contactoEmergencia)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad)
-                        .focused($focusedField, equals: .emergencia)
+                    }
+                    .padding(.top, 6)
+                    VStack(spacing: 6) {
+                        TextField("Teléfono (10 dígitos)", text: $telefono)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.numberPad) // Solo números
+                            .focused($focusedField, equals: .telefono)
+                        if let error = telefonoError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
+                        }
+                    }
+                    VStack(spacing: 6) {
+                        TextField("Contacto de emergencia (Teléfono)", text: $contactoEmergencia)
+                            .textFieldStyle(.roundedBorder)
+                            .keyboardType(.numberPad)
+                            .focused($focusedField, equals: .emergencia)
+                        if let error = contactoError {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 4)
+                        }
+                    }
                 }
                 .padding(.horizontal)
                 
