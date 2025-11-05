@@ -14,9 +14,91 @@ struct DatosPersonalesView: View {
     @Query(sort: \User.nombre) var users: [User] // Cargar Usuario
     var currentUser: User? { users.first }
     
-    private func saveChanges() {
-        isEditing = false
-    }
+    // Estados locales para la edición
+    @State private var nombre: String = ""
+    @State private var apellidos: String = ""
+    @State private var telefono: String = ""
+    @State private var contactoEmergencia: String = ""
+    @State private var direccion: String = ""
+    @State private var sexo: String = ""
+    @State private var peso: Double = 0.0
+    @State private var edad: Int = 0
+    @State private var tipoSangre: String = ""
+    @State private var diagnostico: String = ""
+    @State private var alergias: String = ""
+    @State private var nombreError: String? = nil
+    @State private var apellidosError: String? = nil
+    @State private var telefonoError: String? = nil
+    @State private var contactoError: String? = nil
+    
+    // Cargar los datos del modelo
+    private func loadUserData() {
+            guard let user = currentUser else { return }
+            nombre = user.nombre
+            apellidos = user.apellidos
+            telefono = user.telefono
+            contactoEmergencia = user.contactoEmergencia
+            direccion = user.direccion
+            sexo = user.sexo
+            peso = user.peso
+            edad = user.edad
+            tipoSangre = user.tipoSangre
+            diagnostico = user.diagnostico
+            alergias = user.alergias
+        }
+    
+    // Limpiar Errores
+    private func clearErrors() {
+            nombreError = nil
+            apellidosError = nil
+            telefonoError = nil
+            contactoError = nil
+        }
+    
+    // Validar el 'Guardar' datos
+    private func validateAndSave() {
+            clearErrors() // Limpiar errores antiguos
+            var isValid = true
+            if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                nombreError = "Falta el nombre."
+                isValid = false
+            }
+            if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                apellidosError = "Faltan los apellidos."
+                isValid = false
+            }
+            if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) {
+                telefonoError = "El teléfono propio debe tener 10 dígitos válidos."
+                isValid = false
+            }
+            if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) {
+                contactoError = "El contacto de emergencia debe tener 10 dígitos válidos."
+                isValid = false
+            }
+            // Si no es válido, nos detenemos aquí
+            guard isValid else { return }
+            // Si sí es válido, guardamos los datos en el modelo
+            guard let user = currentUser else { return }
+            
+            user.nombre = nombre
+            user.apellidos = apellidos
+            user.telefono = telefono
+            user.contactoEmergencia = contactoEmergencia
+            user.direccion = direccion
+            user.sexo = sexo
+            user.peso = peso
+            user.edad = edad
+            user.tipoSangre = tipoSangre
+            user.diagnostico = diagnostico
+            user.alergias = alergias
+            
+            // Salir del Modo edición y Mostrar Alerta
+            isEditing = false
+            withAnimation{ showSaveConfirmation = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                withAnimation { showSaveConfirmation = false }
+            }
+        }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -66,10 +148,12 @@ struct DatosPersonalesView: View {
                 
                 Button {
                     if isEditing {
-                        withAnimation{ showSaveConfirmation = true } // Mostrar confirmación
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showSaveConfirmation = false }
+                        validateAndSave()
+                    } else {
+                        loadUserData()
+                        isEditing.toggle()
                     }
-                    isEditing.toggle()
+                    
                 } label: {
                     Text(isEditing ? "Guardar" : "Editar")
                         .font(.callout.weight(.semibold))
@@ -84,27 +168,27 @@ struct DatosPersonalesView: View {
 
             // Lista de chips
             ScrollView {
-                if let user = currentUser { // Usamos Bingings para la edición en @Binable var user = users
-                    @Bindable var user = user
+                if let user = currentUser {
                     // Opciones de Tipos de Sangre
                     let bloodTypes = ["N/A", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
                     let sexOptions = ["No Especificado","Hombre", "Mujer"]
                     
                     VStack(spacing: 14) {
-                        ChipRow(titulo: "Nombre:", text: $user.nombre, editable: isEditing)
-                        ChipRow(titulo: "Apellidos:", text: $user.apellidos, editable: isEditing)
-                        ChipRow(titulo: "Teléfono:", text: $user.telefono, editable: isEditing)
-                        ChipRow(titulo: "Contacto Emergencias:", text: $user.contactoEmergencia, editable: isEditing)
-                        ChipRow(titulo: "Dirección:", text: $user.direccion, editable: isEditing)
-                        PickerChipRow(titulo: "Sexo:", selection: $user.sexo, options: sexOptions, editable: isEditing)
-                        DoubleChipRow(titulo: "Peso (Kg):", value: $user.peso, editable: isEditing)
-                        IntChipRow(titulo: "Edad:", value: $user.edad, editable: isEditing)
-                        PickerChipRow(titulo: "Tipo de sangre:", selection: $user.tipoSangre, options: bloodTypes, editable: isEditing)
-                        ChipRow(titulo: "Diagnóstico:", text: $user.diagnostico, editable: isEditing)
-                        ChipRow(titulo: "Alergias:", text: $user.alergias, editable: isEditing)
+                        ChipRow(titulo: "Nombre:", text: $nombre, editable: isEditing, error: nombreError)
+                        ChipRow(titulo: "Apellidos:", text: $apellidos, editable: isEditing, error: apellidosError)
+                        ChipRow(titulo: "Teléfono:", text: $telefono, editable: isEditing, error: telefonoError)
+                        ChipRow(titulo: "Contacto Emergencias:", text: $contactoEmergencia, editable: isEditing, error: contactoError)
+                        ChipRow(titulo: "Dirección:", text: $direccion, editable: isEditing)
+                        PickerChipRow(titulo: "Sexo:", selection: $sexo, options: sexOptions, editable: isEditing)
+                        DoubleChipRow(titulo: "Peso (Kg):", value: $peso, editable: isEditing)
+                        IntChipRow(titulo: "Edad:", value: $edad, editable: isEditing)
+                        PickerChipRow(titulo: "Tipo de sangre:", selection: $tipoSangre, options: bloodTypes, editable: isEditing)
+                        ChipRow(titulo: "Diagnóstico:", text: $diagnostico, editable: isEditing)
+                        ChipRow(titulo: "Alergias:", text: $alergias, editable: isEditing)
                     }
                     .padding(.horizontal)
                     .padding(.bottom, 8)
+                    .onAppear { if !isEditing { loadUserData() } }
                 } else {
                     Text("Cargando Datos del Usuario...")
                         .foregroundColor(.gray)
@@ -148,37 +232,47 @@ struct ChipRow: View {
     let titulo: String
     var editable: Bool = false
     @Binding var text: String
+    var error: String?
 
-    init(titulo: String, text: Binding<String>, editable: Bool = false) {
+    init(titulo: String, text: Binding<String>, editable: Bool = false, error: String? = nil) {
         self.titulo = titulo
         self._text = text
         self.editable = editable
+        self.error = error
     }
     
     var body: some View {
-        HStack {
-            HStack(spacing: 2) {
-                Text(titulo)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.blue.opacity(0.9))
-                
-                if editable {
-                    TextField("", text: $text)
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled(true)
-                } else {
-                    Text(text)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                HStack(spacing: 2) {
+                    Text(titulo)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.blue.opacity(0.9))
+                    
+                    if editable {
+                        TextField("", text: $text)
+                            .textFieldStyle(.plain)
+                            .autocorrectionDisabled(true)
+                    } else {
+                        Text(text)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                Capsule()
+                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+            )
+            if let error = error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 18)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            Capsule()
-                .fill(Color(.systemGray5))
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-        )
     }
 }
 
@@ -187,37 +281,40 @@ struct DoubleChipRow: View {
     let titulo: String
     @Binding var value: Double
     var editable: Bool = false
-    private var formatter: NumberFormatter {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        f.maximumFractionDigits = 2 // 2 decimales
-        return f
-    }
+    var error: String?
 
     var body: some View {
-        HStack {
-            HStack(spacing: 2) {
-                Text(titulo)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.blue.opacity(0.9))
-                if editable {
-                    TextField("", value: $value, formatter: formatter)
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled(true)
-                        .keyboardType(.decimalPad)
-                } else {
-                    Text(value, format: .number.precision(.fractionLength(2)))
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                HStack(spacing: 2) {
+                    Text(titulo)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.blue.opacity(0.9))
+                    if editable {
+                        TextField("", value: $value, format: .number.precision(.fractionLength(2)))
+                            .textFieldStyle(.plain)
+                            .autocorrectionDisabled(true)
+                            .keyboardType(.decimalPad)
+                    } else {
+                        Text(value, format: .number.precision(.fractionLength(2)))
+                    }
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                Capsule()
+                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+            )
+            if let error = error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 18)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            Capsule()
-                .fill(Color(.systemGray5))
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-        )
     }
 }
 
@@ -226,37 +323,41 @@ struct IntChipRow: View {
     let titulo: String
     @Binding var value: Int
     var editable: Bool = false
-    private var formatter: NumberFormatter {
-        let f = NumberFormatter()
-        f.numberStyle = .none // Sin decimales
-        return f
-    }
+    var error: String?
 
     var body: some View {
-        HStack {
-            HStack(spacing: 2) {
-                Text(titulo)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.blue.opacity(0.9))
-            
-                if editable {
-                    TextField("", value: $value, formatter: formatter)
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled(true)
-                        .keyboardType(.numberPad) // Teclado numérico
-                } else {
-                    Text(value, format: .number)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                HStack(spacing: 2) {
+                    Text(titulo)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.blue.opacity(0.9))
+                    
+                    if editable {
+                        TextField("", value: $value, format: .number)
+                            .textFieldStyle(.plain)
+                            .autocorrectionDisabled(true)
+                            .keyboardType(.numberPad) // Teclado numérico
+                    } else {
+                        Text(value, format: .number)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                Capsule()
+                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+            )
+            if let error = error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 18)
+            }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            Capsule()
-                .fill(Color(.systemGray5))
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-        )
     }
 }
 
@@ -266,42 +367,45 @@ struct PickerChipRow: View {
     @Binding var selection: String
     var options: [String]
     var editable: Bool = false
+    var error: String?
 
     var body: some View {
-        HStack {
-            HStack(spacing: 2) {
-                Text(titulo)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Color.blue.opacity(0.9))
-                
-                if editable {
-                    Picker(titulo, selection: $selection) {
-                        ForEach(options, id: \.self) { option in
-                            Text(option).tag(option)
-                        }
-                    }
-                    .pickerStyle(.menu) // Estilo de menú desplegable
-                    .tint(.primary) // Para que el texto no sea azul
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                HStack(spacing: 2) {
+                    Text(titulo)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(Color.blue.opacity(0.9))
                     
-                } else {
-                    Text(selection) // Solo muestra el texto
+                    if editable {
+                        Picker(titulo, selection: $selection) {
+                            ForEach(options, id: \.self) { option in
+                                Text(option).tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu) // Estilo de menú desplegable
+                        .tint(.primary) // Para que el texto no sea azul
+                        
+                    } else {
+                        Text(selection) // Solo muestra el texto
+                    }
                 }
+                Spacer()
             }
-            Spacer()
-            
-            if editable {
-                Image(systemName: "chevron.up.chevron.down")
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+            )
+            if let error = error {
+                Text(error)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.red)
+                    .padding(.horizontal, 18)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(Color(.systemGray5))
-                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-        )
     }
 }
 
