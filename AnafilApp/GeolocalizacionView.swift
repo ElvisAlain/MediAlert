@@ -16,10 +16,10 @@ struct GeolocalizacionView: View {
                     .font(.title3).bold()
                 Spacer()
                 HStack(spacing: 14) {
-                    NavigationLink{
-                        BotiquinView()
+                    NavigationLink {
+                        NotificacionesView()
                     } label: {
-                        Image(systemName: "cross.case")
+                        Image(systemName: "bell.fill")
                     }
                     Image(systemName: "globe")
                 }
@@ -87,10 +87,10 @@ struct GeolocalizacionView: View {
             // Tab bar (mock, estático)
             HStack(spacing: 30) {
                 Image(systemName: "house.fill")
-                NavigationLink {
-                    NotificacionesView()
+                NavigationLink{
+                    BotiquinView()
                 } label: {
-                    Image(systemName: "bell.fill")
+                    Image(systemName: "cross.case.fill")
                 }
                 ZStack {
                     Circle().fill(Color(.systemBackground))

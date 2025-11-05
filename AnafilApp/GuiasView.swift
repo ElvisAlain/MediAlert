@@ -19,8 +19,9 @@ struct GuiasView: View {
                         .font(.title3.weight(.semibold))
                     Spacer()
                     HStack(spacing: 14) {
-                        NavigationLink{BotiquinView()} label: {Image(systemName:"cross.case")}
-                        // Image(systemName: "cross.case")
+                        NavigationLink { NotificacionesView() } label: {
+                            Image(systemName: "bell.fill")
+                        }
                         Image(systemName: "globe")
                     }
                     .font(.title3)
@@ -35,8 +36,10 @@ struct GuiasView: View {
                     NavigationLink { GeolocalizacionView() } label: {
                         Image(systemName: "house.fill")
                     }
-                    NavigationLink { NotificacionesView() } label: {
-                        Image(systemName: "bell.fill")
+                    NavigationLink{
+                        BotiquinView()
+                    } label: {
+                        Image(systemName: "cross.case.fill")
                     }
                     ZStack {
                         Circle().fill(Color(.systemBackground))

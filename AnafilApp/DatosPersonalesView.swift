@@ -181,10 +181,8 @@ struct DatosPersonalesView: View {
                     .font(.title3.weight(.semibold))
                 Spacer()
                 HStack(spacing: 14) {
-                    NavigationLink{
-                        BotiquinView()
-                    } label: {
-                        Image(systemName: "cross.case")
+                    NavigationLink{ NotificacionesView() } label: {
+                        Image(systemName: "bell.fill")
                     }
                     Image(systemName: currentUser?.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
                 }
@@ -288,9 +286,9 @@ struct DatosPersonalesView: View {
                     Image(systemName: "house.fill")
                 }
                 NavigationLink{
-                    NotificacionesView()
+                    BotiquinView()
                 } label: {
-                    Image(systemName: "bell.fill")
+                    Image(systemName: "cross.case.fill")
                 }
                 ZStack {
                     Circle().fill(Color(.systemBackground))

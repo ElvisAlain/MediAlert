@@ -26,6 +26,8 @@ final class User {
     var alergias: String
     @Attribute(.externalStorage)
     var profileImageData: Data? // Foto de Perfil de Galeria
+    @Relationship(deleteRule: .cascade, inverse: \RecetaMedica.user) // 1 usuario : puede tener MUCHAS recetas | en cascada
+    var recetas: [RecetaMedica] = []
     
     // Calcular Edad
     var calculatedAge: Int {

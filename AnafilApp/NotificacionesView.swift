@@ -17,11 +17,7 @@ struct NotificacionesView: View {
                     .font(.title3.weight(.semibold))
                 Spacer()
                 HStack(spacing: 14) {
-                    NavigationLink{
-                        BotiquinView()
-                    } label: {
-                        Image(systemName: "cross.case")
-                    }
+                    
                     Image(systemName: "globe")
                 }
                 .font(.title3)
@@ -96,7 +92,11 @@ struct NotificacionesView: View {
                     Image(systemName: "house.fill")
                 }
                 // Image(systemName: "house.fill")
-                Image(systemName: "bell.fill")
+                NavigationLink {
+                    BotiquinView()
+                } label: {
+                    Image(systemName: "cross.case.fill")
+                }
                 ZStack {
                     Circle().fill(Color(.systemBackground))
                         .frame(width: 56, height: 56)
