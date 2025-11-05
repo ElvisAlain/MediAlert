@@ -22,6 +22,12 @@ struct ContentView: View {
     @State private var apellidosError: String? = nil
     @State private var telefonoError: String? = nil
     @State private var contactoError: String? = nil
+    @State private var direccionError: String? = nil
+    @State private var sexoError: String? = nil
+    @State private var pesoError: String? = nil
+    @State private var tipoSangreError: String? = nil
+    @State private var diagnosticoError: String? = nil
+    @State private var alergiasError: String? = nil
     
     // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
     @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
@@ -78,10 +84,9 @@ struct ContentView: View {
             direccion: "No especificada",
             sexo: "No especificado",
             peso: 0.0,
-            edad: 0,
             tipoSangre: "N/A",
             diagnostico: "N/A",
-            alergias: "N/A",
+            alergias: "No especificada(s)",
         )
         modelContext.insert(newUser)
         isFirstLaunch = false // Bandera
