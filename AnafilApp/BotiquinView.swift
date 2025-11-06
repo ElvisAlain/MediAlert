@@ -23,6 +23,11 @@ struct BotiquinView: View {
     @State private var error: String?
     @State private var showSaveConfirmation: Bool = false // Para dar retro al User
     
+    // Estados para Deshacer
+    @State private var showDeleteConfirmation: Bool = false // Deshacer
+    @State private var recetaParaBorrar: RecetaMedica? // La que está en espera
+    @State private var deleteTimer: Timer? // Temporizador
+    
     // Función para Guardar Receta
     private func saveReceta() {
         error = nil // Limpiar Error
@@ -54,32 +59,43 @@ struct BotiquinView: View {
             }
         }
     }
-    private func deleteReceta(receta: RecetaMedica) {
-        modelContext.delete(receta) // Pedimos que se borre, UI se actualiza automáticamente por el @Query
+    private func deleteReceta(receta: RecetaMedica) { // El usuario pulsa Borrar
+        deleteTimer?.invalidate()
+        withAnimation {
+            showSaveConfirmation = false
+            recetaParaBorrar = receta
+            showDeleteConfirmation = true
+        }
+        deleteTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { _ in // Timer de 4seg | Si no se cancela, se borra de verdad
+            performActualDelete()
+        }
+    }
+    private func performActualDelete() { // El timer se acaba y se bora definitivamente
+        if let receta = recetaParaBorrar {
+            modelContext.delete(receta)
+        }
+        withAnimation { showDeleteConfirmation = false }
+        recetaParaBorrar = nil
+        deleteTimer = nil
+    }
+    private func undoDelete() { // El usuario pulsa 'Deshacer'
+        deleteTimer?.invalidate()
+        withAnimation { showDeleteConfirmation = false }
+        recetaParaBorrar = nil
+        deleteTimer = nil
     }
     private var sortedRecetas: [RecetaMedica] { // Precalcular la lista ordenada
-            currentUser?.recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida }) ?? []
+        let allRecetas = currentUser?.recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida }) ?? []
+        if let recetaParaBorrar = recetaParaBorrar { // Si hay uno para borrar, no se muestra
+            return allRecetas.filter { $0.id != recetaParaBorrar.id }
         }
+        return allRecetas
+    }
     
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                
-                // Mensaje de Confirmación
-                if showSaveConfirmation {
-                    Text("¡Receta guardada con éxito!")
-                        .font(.caption.weight(.semibold))
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.green.opacity(0.2))
-                        .foregroundStyle(Color.green)
-                        .cornerRadius(8)
-                        .padding(.horizontal)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                        .zIndex(1) // Al frente
-                }
-                
                 // Header
                 HStack {
                     Label("Botiquín de \(currentUser?.nombre ?? "Usuario")", systemImage: "cross.case")
@@ -95,77 +111,121 @@ struct BotiquinView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 12)
-            
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Card: Agregar Receta Médica
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Agregar Receta Médica")
-                                .font(.headline).fontWeight(.semibold)
+                .padding(.bottom, 8)
+                
+                ZStack(alignment: .top) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
                             
-                            // Botón para subir Receta (PhotosPicker)
-                            Button(action: { showPhotoGallery = true }) {
-                                HStack {
-                                    if let newRecetaImage {
-                                        newRecetaImage
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(height: 100)
-                                            .clipped()
-                                    } else {
-                                        Text("Subir Receta")
-                                            .foregroundStyle(.secondary)
-                                        Spacer()
-                                        Image(systemName: "arrow.up.circle")
+                            // Card: Agregar Receta Médica
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Agregar Receta Médica")
+                                    .font(.headline).fontWeight(.semibold)
+                                
+                                // Botón para subir Receta (PhotosPicker)
+                                Button(action: { showPhotoGallery = true }) {
+                                    HStack {
+                                        if let newRecetaImage {
+                                            newRecetaImage
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(height: 100)
+                                                .clipped()
+                                        } else {
+                                            Text("Subir Receta")
+                                                .foregroundStyle(.secondary)
+                                            Spacer()
+                                            Image(systemName: "arrow.up.circle")
+                                        }
                                     }
-                                }
-                                .padding()
-                                .frame(height: newRecetaImage != nil ? 100 : 50)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                            }
-                            
-                            // Selector de Fecha
-                            DatePicker("Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
-                            
-                            // Mostrar Error si hay
-                            if let error = error {
-                                Text(error)
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                            }
-                            
-                            Button("Agregar", action: saveReceta)
-                                .buttonStyle(.borderedProminent)
-                                .frame(maxWidth: .infinity)
-                        }
-                        .cardStyle()
-                        
-                        // Card: Mis Recetas Guardadas
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Mis Recetas Guardadas")
-                                .font(.headline).fontWeight(.semibold)
-                            
-                            if !sortedRecetas.isEmpty {
-                                ForEach(sortedRecetas) { receta in
-                                    // Usamos la nueva vista 'RecetaCardView'
-                                    RecetaCardView(receta: receta, onDelete: {
-                                        deleteReceta(receta: receta)
-                                    })
-                                }
-                            } else {
-                                Text("Aún no tienes Recetas guardadas.")
-                                    .foregroundStyle(.secondary)
-                                    .frame(maxWidth: .infinity, alignment: .center)
                                     .padding()
+                                    .frame(height: newRecetaImage != nil ? 100 : 50)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                                }
+                                
+                                // Selector de Fecha
+                                DatePicker("Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
+                                
+                                // Mostrar Error si hay
+                                if let error = error {
+                                    Text(error)
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                                
+                                Button("Agregar", action: saveReceta)
+                                    .buttonStyle(.borderedProminent)
+                                    .frame(maxWidth: .infinity)
                             }
+                            .cardStyle()
+                            
+                            // Card: Mis Recetas Guardadas
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Mis Recetas Guardadas")
+                                    .font(.headline).fontWeight(.semibold)
+                                
+                                if !sortedRecetas.isEmpty {
+                                    ForEach(sortedRecetas, id: \.id) { receta in
+                                        // Usamos la nueva vista 'RecetaCardView'
+                                        RecetaCardView(receta: receta, onDelete: {
+                                            deleteReceta(receta: receta)
+                                        })
+                                        .transition(.opacity.combined(with: .scale))
+                                    }
+                                } else {
+                                    Text(currentUser?.recetas.isEmpty ?? true ? "Aún no tienes Recetas guardadas." : "...")
+                                        .foregroundStyle(.secondary)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .padding()
+                                }
+                            }
+                            .cardStyle()
+                            .animation(.default, value: sortedRecetas)
                         }
-                        .cardStyle()
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                        .padding(.vertical, 12)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
+                    .background(Color(.systemGroupedBackground))
                 }
-                .background(Color(.systemGroupedBackground))
+                
+                VStack(spacing: 8) {
+                    // Mensaje de Confirmación
+                    if showSaveConfirmation {
+                        Text("¡Receta guardada con éxito!")
+                            .font(.caption.weight(.semibold))
+                            .padding(8)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.green.opacity(0.2))
+                            .foregroundStyle(Color.green)
+                            .cornerRadius(8)
+                            .padding(.horizontal)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .zIndex(1) // Al frente
+                    }
+                    if showDeleteConfirmation {
+                        HStack{
+                            Text("Receta eliminada.")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(Color.red)
+                            Spacer()
+                            Button("Deshacer") {
+                                undoDelete()
+                            }
+                            .font(.caption.weight(.bold))
+                            .tint(Color.red)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 4)
                 
                 // Tab bar
                 HStack(spacing: 30) {
@@ -191,7 +251,7 @@ struct BotiquinView: View {
             .background(Color(.systemGroupedBackground))
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
-            
+                
             .photosPicker(isPresented: $showPhotoGallery, selection: $selectedPhotoItem, matching: .images)
             .onChange(of: selectedPhotoItem) {_, newItem in
                 Task {
@@ -219,6 +279,7 @@ struct RecetaCardView: View {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
+                        .frame(height: 250)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
             }
