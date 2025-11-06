@@ -66,7 +66,7 @@ struct BotiquinView: View {
             recetaParaBorrar = receta
             showDeleteConfirmation = true
         }
-        deleteTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { _ in // Timer de 4seg | Si no se cancela, se borra de verdad
+        deleteTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in // Timer de 3seg | Si no se cancela, se borra de verdad
             performActualDelete()
         }
     }
@@ -195,13 +195,12 @@ struct BotiquinView: View {
                     if showSaveConfirmation {
                         Text("¡Receta guardada con éxito!")
                             .font(.caption.weight(.semibold))
-                            .padding(8)
+                            .padding(12)
                             .frame(maxWidth: .infinity)
                             .background(Color.green.opacity(0.2))
                             .foregroundStyle(Color.green)
                             .cornerRadius(8)
-                            .padding(.horizontal)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .transition(.opacity.combined(with: .move(edge: .bottom)))
                             .zIndex(1) // Al frente
                     }
                     if showDeleteConfirmation {

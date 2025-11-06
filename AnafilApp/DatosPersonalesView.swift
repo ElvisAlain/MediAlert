@@ -163,19 +163,7 @@ struct DatosPersonalesView: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
-            if showSaveConfirmation {
-                Text("¡Datos guardados!")
-                    .font(.caption.weight(.semibold))
-                    .padding(8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green.opacity(0.2))
-                    .foregroundStyle(Color.green)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                    .zIndex(1) // Al frente
-            }
+        VStack(spacing: 0) {
             HStack {
                 Label("Datos Personales", systemImage: "info.circle")
                     .font(.title3.weight(.semibold))
@@ -190,6 +178,7 @@ struct DatosPersonalesView: View {
             }
             .padding(.horizontal)
             .padding(.top, 12)
+            .padding(.bottom, 8)
 
             HStack(spacing: 12) {
                 ZStack {
@@ -246,7 +235,9 @@ struct DatosPersonalesView: View {
                 }
             }
             .padding(.horizontal)
-
+            .padding(.top, 8)
+            .padding(.bottom, 8)
+            
             // Lista de chips
             ScrollView {
                 if currentUser != nil {
@@ -269,6 +260,7 @@ struct DatosPersonalesView: View {
                         ChipRow(titulo: "Alergias: ", text: $alergias, editable: isEditing, error: alergiasError)
                     }
                     .padding(.horizontal)
+                    .padding(.top, 12)
                     .padding(.bottom, 8)
                     .onAppear { if !isEditing { loadUserData() } }
                 } else {
@@ -277,7 +269,22 @@ struct DatosPersonalesView: View {
                         .padding()
                 }
             }
-
+            
+            VStack {
+                if showSaveConfirmation {
+                    Text("¡Datos guardados!")
+                        .font(.caption.weight(.semibold))
+                        .padding(12)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.2))
+                        .foregroundStyle(Color.green)
+                        .cornerRadius(8)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 4)
+            
             // Tab bar (mock, estático)
             HStack(spacing: 30) {
                 NavigationLink{
@@ -304,6 +311,7 @@ struct DatosPersonalesView: View {
             .font(.title2)
             .padding(.vertical, 10)
         }
+        .background(Color(.systemGroupedBackground))
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .confirmationDialog("Seleccionar Foto", isPresented: $showPhotoOptions){
@@ -351,13 +359,16 @@ struct ChipRow: View {
                     Text(titulo)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.blue.opacity(0.9))
+                        .layoutPriority(1)
                     
                     if editable {
                         TextField("", text: $text)
                             .textFieldStyle(.plain)
                             .autocorrectionDisabled(true)
+                            .lineLimit(1)
                     } else {
                         Text(text)
+                            .lineLimit(1)
                     }
                 }
                 Spacer()
@@ -527,8 +538,6 @@ struct DateChipRow: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.blue.opacity(0.9))
                     
-                    Spacer() // Empuja el picker a la derecha
-                    
                     if editable {
                         DatePicker(
                             "",
@@ -542,6 +551,7 @@ struct DateChipRow: View {
                         Text(selection, style: .date)
                     }
                 }
+                Spacer()
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
