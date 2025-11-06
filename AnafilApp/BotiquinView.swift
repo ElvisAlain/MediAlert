@@ -13,6 +13,7 @@ struct BotiquinView: View {
     @Query(sort: \User.nombre) var users: [User] // Conexión a SwiftData
     var currentUser: User? {users.first}
     
+    @Environment(\.modelContext) private var modelContext // Para poder borrar Recetas
     // Estados para las Recetas
     @State private var newRecetaDate: Date = Date()
     @State private var newRecetaImage: Image?
@@ -20,6 +21,7 @@ struct BotiquinView: View {
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showPhotoGallery: Bool = false
     @State private var error: String?
+    @State private var showSaveConfirmation: Bool = false // Para dar retro al User
     
     // Función para Guardar Receta
     private func saveReceta() {
@@ -41,12 +43,43 @@ struct BotiquinView: View {
         newRecetaImage = nil
         newRecetaImageData = nil
         selectedPhotoItem = nil
+        
+        // Mostrar confirmación
+        withAnimation {
+            showSaveConfirmation = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                showSaveConfirmation = false
+            }
+        }
     }
+    private func deleteReceta(receta: RecetaMedica) {
+        modelContext.delete(receta) // Pedimos que se borre, UI se actualiza automáticamente por el @Query
+    }
+    private var sortedRecetas: [RecetaMedica] { // Precalcular la lista ordenada
+            currentUser?.recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida }) ?? []
+        }
     
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                
+                // Mensaje de Confirmación
+                if showSaveConfirmation {
+                    Text("¡Receta guardada con éxito!")
+                        .font(.caption.weight(.semibold))
+                        .padding(8)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.green.opacity(0.2))
+                        .foregroundStyle(Color.green)
+                        .cornerRadius(8)
+                        .padding(.horizontal)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .zIndex(1) // Al frente
+                }
+                
                 // Header
                 HStack {
                     Label("Botiquín de \(currentUser?.nombre ?? "Usuario")", systemImage: "cross.case")
@@ -62,8 +95,7 @@ struct BotiquinView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 12)
-                
-                // Botiquin2Page()
+            
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         // Card: Agregar Receta Médica
@@ -109,26 +141,17 @@ struct BotiquinView: View {
                         }
                         .cardStyle()
                         
-                        // Card: Imagen + Fecha (mock)
+                        // Card: Mis Recetas Guardadas
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Mis Recetas Guardadas")
                                 .font(.headline).fontWeight(.semibold)
                             
-                            if let recetas = currentUser?.recetas, !recetas.isEmpty {
-                                // Iterar sobre las recetas guardadas
-                                ForEach(recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida })) {receta in
-                                    VStack(alignment: .leading) {
-                                        InfoRow("Fecha Subida: ", receta.fechaSubida.formatted(date: .long, time: .omitted))
-                                        if let data = receta.imagenRecetaData, let uiImage = UIImage(data: data) {
-                                            Image(uiImage: uiImage)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        }
-                                    }
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
+                            if !sortedRecetas.isEmpty {
+                                ForEach(sortedRecetas) { receta in
+                                    // Usamos la nueva vista 'RecetaCardView'
+                                    RecetaCardView(receta: receta, onDelete: {
+                                        deleteReceta(receta: receta)
+                                    })
                                 }
                             } else {
                                 Text("Aún no tienes Recetas guardadas.")
@@ -184,7 +207,38 @@ struct BotiquinView: View {
     }
 }
     
+struct RecetaCardView: View {
+    let receta: RecetaMedica
+    let onDelete: () -> Void
     
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            VStack(alignment: .leading) {
+                InfoRow("Fecha Subida: ", receta.fechaSubida.formatted(date: .long, time: .omitted))
+                if let data = receta.imagenRecetaData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding([.leading, .bottom, .trailing])
+            .padding(.top, 40)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.red)
+                    .background(Circle().fill(Color.white))
+            }
+            .padding(8)
+        }
+    }
+}
+
 private struct LabeledField: View {
     let label: String
     init(_ label: String) { self.label = label }
@@ -225,5 +279,5 @@ private extension View {
 
 #Preview {
     BotiquinView()
-        .modelContainer(for: [User.self, RecetaMedica.self], inMemory: true)    
+        .modelContainer(for: [User.self, RecetaMedica.self], inMemory: true)
 }
