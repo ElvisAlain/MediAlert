@@ -81,6 +81,11 @@ struct DatosPersonalesView: View {
         tipoSangreError = nil
         diagnosticoError = nil
         alergiasError = nil
+        nombreError = nil
+        apellidosError = nil
+        direccionError = nil
+        diagnosticoError = nil
+        alergiasError = nil
         }
     
     // Calcular Edad
@@ -135,6 +140,34 @@ struct DatosPersonalesView: View {
             tipoSangreError = "Selecciona un tipo de sangre."
             isValid = false
         }
+        // Si ya falló en algo, no continuamos
+        guard isValid else { return }
+        
+        // Sólo se ejecuta si los campos No están vacíos
+        let maxNombre = 25
+        let maxApellidos = 25
+        let maxOtros = 40 // Diagnóstico | Dirección | Alergias
+        if nombre.count > maxNombre {
+            nombreError = "El nombre no debe exceder los \(maxNombre) caracteres."
+            isValid = false
+        }
+        if apellidos.count > maxApellidos {
+            apellidosError = "Los apellidos no debe exceder los \(maxApellidos) caracteres."
+            isValid = false
+        }
+        if direccion.count > maxOtros {
+            direccionError = "La dirección no debe exceder los \(maxOtros) caracteres."
+            isValid = false
+        }
+        if diagnostico.count > maxOtros {
+            diagnosticoError = "El diagnóstico no debe exceder los \(maxOtros) caracteres."
+            isValid = false
+        }
+        if alergias.count > maxOtros {
+            alergiasError = "Las alergias no debe exceder los \(maxOtros) caracteres."
+            isValid = false
+        }
+        
         // Si no es válido, nos detenemos aquí
         guard isValid else { return }
         
