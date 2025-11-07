@@ -84,10 +84,18 @@ struct ContentView: View {
             direccion: "No especificada",
             sexo: "No especificado",
             peso: 0.0,
+            fechaNacimiento: Date(),
             tipoSangre: "N/A",
             diagnostico: "N/A",
-            alergias: "No especificada(s)",
+            alergias: "No especificada",
         )
+        if newUser.isProfileIncomplete() { // Añadir primera notificación cuando el perfil está incompleto
+            let primeraNoti = HistorialAcciones (
+                tipo_accion: .profileUpdate,
+                detalle: "No olvides llenar los campos de Datos Personales, tu información es muy importante."
+            )
+            newUser.historialAcciones.append(primeraNoti)
+        }
         modelContext.insert(newUser)
         isFirstLaunch = false // Bandera
     }

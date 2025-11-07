@@ -28,13 +28,22 @@ final class User {
     var profileImageData: Data? // Foto de Perfil de Galeria
     @Relationship(deleteRule: .cascade, inverse: \RecetaMedica.user) // 1 usuario : puede tener MUCHAS recetas | en cascada
     var recetas: [RecetaMedica] = []
-    
+    @Relationship(deleteRule: .cascade, inverse: \HistorialAcciones.user)
+    var historialAcciones: [HistorialAcciones] = []
     // Calcular Edad
     var calculatedAge: Int {
         let now = Date()
         let calendar = Calendar.current
         let ageComponents = calendar.dateComponents([.year], from: fechaNacimiento, to: now)
         return ageComponents.year ?? 0
+    }
+    func isProfileIncomplete() -> Bool {
+        let isAgeMissing = self.calculatedAge == 0
+        return direccion == "No especificada" || // Comparamos con los valores por defecto, si no os ha modificado-completado, entonces 'Está Incompleto' el perfil
+        peso == 0.0 ||
+        tipoSangre == "N/A" ||
+        alergias == "No especificada" ||
+        isAgeMissing
     }
     
     init(
