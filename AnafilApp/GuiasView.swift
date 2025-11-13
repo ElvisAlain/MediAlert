@@ -19,9 +19,7 @@ struct GuiasView: View {
                         .font(.title3.weight(.semibold))
                     Spacer()
                     HStack(spacing: 14) {
-                        NavigationLink { NotificacionesView() } label: {
-                            Image(systemName: "bell.fill")
-                        }
+                        NotificacionesBellView()
                         Image(systemName: "globe")
                     }
                     .font(.title3)

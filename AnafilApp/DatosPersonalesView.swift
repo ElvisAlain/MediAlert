@@ -202,9 +202,7 @@ struct DatosPersonalesView: View {
                     .font(.title3.weight(.semibold))
                 Spacer()
                 HStack(spacing: 14) {
-                    NavigationLink{ NotificacionesView() } label: {
-                        Image(systemName: "bell.fill")
-                    }
+                    NotificacionesBellView()
                     Image(systemName: currentUser?.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
                 }
                 .font(.title3)

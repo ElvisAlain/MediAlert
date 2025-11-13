@@ -88,6 +88,17 @@ struct NotificacionesView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .background(Color(.systemGroupedBackground))
+        .onAppear {
+            marcarComoLeidas()
+        }
+    }
+    
+    private func marcarComoLeidas() { // Limpiar la bolita roja
+        guard let user = currentUser else {return}
+        let noLeidas = user.historialAcciones.filter { $0.leida == false } // Filtrar las NO leídas
+        for noti in noLeidas {
+            noti.leida = true
+        }
     }
     
     @ViewBuilder // Helper para construir las tarjetas
@@ -147,5 +158,36 @@ struct NotiCard: View {
                 .fill(Color(.systemGray5))
                 .shadow(color: .black.opacity(0.15), radius: 6, y: 4)
         )
+    }
+}
+
+struct NotificacionesBellView: View {
+    @Query(sort: \User.nombre) var user: [User]
+    var currentUser: User? {user.first}
+    
+    var body: some View {
+        NavigationLink {
+            NotificacionesView()
+        } label: {
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: "bell.fill")
+                    .font(.title3)
+                    .padding(.top, 5)
+                    .padding(.trailing, 5)
+                
+                if let user = currentUser {
+                    let noLeidas = user.historialAcciones.filter{ !$0.leida }.count
+                    if noLeidas > 0 {
+                        Text("\(noLeidas)")
+                            .font(.caption2).bold()
+                            .foregroundStyle(.white)
+                            .frame(width: 18, height: 18)
+                            .background(.red)
+                            .clipShape(Circle())
+                            .offset(x: 5, y: -5) // La bolita en la esquina
+                    }
+                }
+            }
+        }
     }
 }

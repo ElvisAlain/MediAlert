@@ -16,11 +16,7 @@ struct GeolocalizacionView: View {
                     .font(.title3).bold()
                 Spacer()
                 HStack(spacing: 14) {
-                    NavigationLink {
-                        NotificacionesView()
-                    } label: {
-                        Image(systemName: "bell.fill")
-                    }
+                    NotificacionesBellView()
                     Image(systemName: "globe")
                 }
                 .font(.title3)

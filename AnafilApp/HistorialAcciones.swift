@@ -13,13 +13,14 @@ final class HistorialAcciones {
     var tipo_accion: TipoAccion
     var fecha_hora: Date
     var detalle: String
-    
+    var leida: Bool = false
     var user: User?
     
     init(tipo_accion: TipoAccion, detalle: String, fecha_hora: Date = Date()) {
         self.tipo_accion = tipo_accion
         self.detalle = detalle
         self.fecha_hora = fecha_hora
+        self.leida = false
     }
 }
 
