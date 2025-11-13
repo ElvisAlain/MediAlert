@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GuiasView: View {
-    @State private var page = 0
+    @State private var showCMICAInfo = false
 
     var body: some View {
         NavigationStack {
@@ -26,145 +26,179 @@ struct GuiasView: View {
                 }
                 .padding(.horizontal)
                 .padding(.top, 12)
+                .padding(.bottom, 8)
 
-                GuiaQueHacerPage()
+                // Contenido Principal
+                ScrollView {
+                    VStack(spacing: 16) {
+                        
+                        // Botón Conócenos (CMICA)
+                        Button(action: { showCMICAInfo = true }) {
+                            HStack {
+                                Image(systemName: "info.circle.fill")
+                                Text("Conócenos (CMICA)")
+                                    .fontWeight(.semibold)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(Color.blue.opacity(0.1))
+                            .foregroundColor(.blue)
+                            .clipShape(Capsule())
+                        }
+                        .padding(.top, 4)
+                        
+                        // Título Principal
+                        HStack {
+                            Image(systemName: "text.book.closed")
+                                .foregroundStyle(.orange)
+                            Text("Información General de Anafilaxia")
+                                .font(.title3.weight(.bold))
+                            Spacer()
+                        }
+                        .padding(.bottom, 4)
 
-                // Tab bar
+                        // 1. Definición
+                        Card {
+                            TitleWithThumb(title: "1. ¿Qué es la Anafilaxia?", imageName: "guias_anafilexia", thumbSize: 60)
+                            bullets([
+                                "Es una reacción alérgica grave de presentación rápida y puede ser mortal.",
+                                "Se estima que ocurren entre 50 y 112 episodios por cada 100,000 personas por año.",
+                                "Entre estos casos, la mortalidad se ha situado entre el 0,05 y el 2 %."
+                            ])
+                        }
+
+                        // 2. Causas
+                        Card {
+                            TitleWithThumb(title: "2. Causas más frecuentes", iconSystemName: "exclamationmark.triangle.fill")
+                            bullets([
+                                "Alimentos.",
+                                "Fármacos.",
+                                "Látex.",
+                                "Picaduras de insectos himenópteros (abejas, avispas)."
+                            ])
+                        }
+
+                        // 3. Signos y Síntomas
+                        Card {
+                            TitleWithThumb(title: "3. Signos y Síntomas", iconSystemName: "cross.case.fill")
+                            
+                            Group {
+                                Text("Piel:").bold() + Text(" Ronchas rojas que pican, hinchazón y/o picor en palmas de las manos, plantas de los pies.")
+                                Divider().padding(.vertical, 4)
+                                
+                                Text("Respiratorio:").bold() + Text(" Tos, sensación de algo atorado en la garganta, silbido y falta de aire.")
+                                Divider().padding(.vertical, 4)
+                                
+                                Text("Cardiovascular:").bold() + Text(" Palpitaciones, mareo, baja de presión y desmayo.")
+                                Divider().padding(.vertical, 4)
+                                
+                                Text("Digestivo:").bold() + Text(" Náusea, vómito, diarrea.")
+                            }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        }
+
+                        // 4. Qué hacer
+                        Card {
+                            TitleWithThumb(title: "4. ¿Qué hacer si sufro anafilaxia?", iconSystemName: "figure.run")
+                            bullets([
+                                "En AnafilApp encontrarás la información gráfica para saber cómo actuar.",
+                                "Se debe avisar en el ámbito laboral y/o escolar acerca de su diagnóstico para que sepan cómo actuar.",
+                                "La persona afectada debe acudir a un servicio de URGENCIAS inmediatamente.",
+                                "Si es posible, solicitar prueba de TRIPTASA SÉRICA BASAL para confirmar diagnóstico."
+                            ])
+                        }
+
+                        // 5. Retirada del Alérgeno
+                        Card {
+                            TitleWithThumb(title: "5. Retirada del Alérgeno", imageName: "guias_retiradoAbeja", thumbSize: 60)
+                            bullets([
+                                "Suspender fármacos sospechosos.",
+                                "Retirar aguijón de abeja rápidamente (prima la rapidez sobre la forma).",
+                                "No provocar vómito en alimentos, pero sí retirar restos de la boca.",
+                                "Retirar productos de látex (guantes, sondas) si hay sospecha de alergia."
+                            ])
+                        }
+
+                        // 6. Adrenalina (Intramuscular)
+                        Card {
+                            TitleWithThumb(title: "6. Aplicar Adrenalina", imageName: "guias_aplicacion", thumbSize: 60)
+                            bullets([
+                                "La adrenalina intramuscular es el ÚNICO tratamiento de elección.",
+                                "Se debe administrar RÁPIDAMENTE.",
+                                "Toda persona con riesgo debería llevar consigo adrenalina.",
+                                "Aplicar siguiendo las instrucciones médicas para inyección intramuscular."
+                            ])
+                        }
+                        
+                        // 7. Prevención
+                        Card {
+                            TitleWithThumb(title: "7. ¿Se puede prevenir?", iconSystemName: "shield.fill")
+                            Text("No existe dieta o estudio preventivo para el primer evento. Para prevenir que suceda nuevamente:")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 4)
+                            
+                            bullets([
+                                "Acudir a valoración por Alergología.",
+                                "Hacer los estudios alergológicos pertinentes indicados por el especialista.",
+                                "Contar con Adrenalina IM e instrucciones para usarla en nuevo evento.",
+                                "Avisar a familiares, ámbito escolar y laboral.",
+                                "Evitar el alérgeno responsable."
+                            ])
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                
+                // Menú Inferior
                 Spacer(minLength: 0)
                 MenuInferior(activeTab: "guias")
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
+            // Popup de CMICA
+            .sheet(isPresented: $showCMICAInfo) {
+                CMICAInfoView()
+                    .presentationDetents([.fraction(0.50)])
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 }
-/*
-// Síntomas --> Page Eliminada por solicitud de CMICA
 
-private struct GuiaSintomasPage: View {
+// Vista del Popup de CMICA
+struct CMICAInfoView: View {
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Título
-                HStack {
-                    Image(systemName: "text.book.closed")
-                    Text("Síntomas en la Anafilaxia")
-                        .font(.title3.weight(.semibold))
-                    Spacer()
+        VStack(spacing: 20) {
+            Image("cmica_logo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 80)
+                .padding(.top, 20)
+          
+            
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top) {
+                        Text("•")
+                        Text("Fue fundado en 1946 y es el organismo que agrupa a todos los Médicos Especialistas en Alergia e Inmunología del país.")
+                    }
+                    HStack(alignment: .top) {
+                        Text("•")
+                        Text("Su principal función es promover el crecimiento académico y la educación médica continua de sus miembros mediante la organización de cursos de actualización, congresos nacionales e internacionales, simposios y talleres.")
+                    }
                 }
-
-                // Secciones
-                Card {
-                    TitleWithThumb(title: "1. Piel", imageName: "guias_piel")
-                    bullets([
-                        "Ronchas rojas que pican.",
-                        "Hinchazón y/o picor en palmas de las manos.",
-                        "Hinchazón y/o picor en plantas de los pies."
-                    ])
-                }
-
-                Card {
-                    TitleWithThumb(title: "2. Respiratorio", imageName: "guias_respiratorio")
-                    bullets([
-                        "Tos.",
-                        "Sensación de algo atorado en la garganta.",
-                        "Silbidos en el pecho.",
-                        "Falta de aire."
-                    ])
-                }
-
-                Card {
-                    TitleWithThumb(title: "3. Cardiovascular", imageName: "guias_cardiovascular")
-                    bullets([
-                        "Palpitaciones.",
-                        "Mareo.",
-                        "Baja presión.",
-                        "Desmayo."
-                    ])
-                }
-
-                Card {
-                    TitleWithThumb(title: "4. Digestivo", imageName: "guias_digestivo")
-                    bullets([
-                        "Náuseas.",
-                        "Vómito.",
-                        "Diarrea.",
-                        "Sabor metálico en la boca."
-                    ])
-                }
-
+                .font(.body)
+                .padding()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
         }
-        .background(Color(.systemGroupedBackground))
-    }
-}*/
-
-// ¿Qué hacer? (Guía 2)
-
-private struct GuiaQueHacerPage: View {
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // Título
-                HStack {
-                    Image(systemName: "text.book.closed")
-                    Text("¿Qué hacer cuando se presenta una anafilaxia?")
-                        .font(.title3.weight(.semibold))
-                    Spacer()
-                }
-
-                Card {
-                    TitleWithThumb(title: "1. Reconocer la anafilaxia", imageName: "guias_anafilexia", thumbSize: 80)
-                    bullets([
-                        "Reacción alérgica grave de presentación rápida y potencialmente mortal.",
-                        "Entre 50–112 episodios por cada 100,000 personas/año.",
-                        "Mortalidad estimada entre 0.05% y 2%.",
-                        "(Consulta la guía de síntomas para reconocerla)."
-                    ])
-                }
-
-                Card {
-                    TitleWithThumb(title: "2. Retirado del alérgeno", imageName: "guias_retiradoAbeja", thumbSize: 80)
-                    bullets([
-                        "Suspender fármacos sospechosos.",
-                        "Retirar aguijón tras picadura de abeja (prima la rapidez).",
-                        "No provocar vómito; retirar restos de alimento en la boca.",
-                        "Retirar productos de látex si se sospecha alergia."
-                    ])
-                }
-
-                Card {
-                    TitleWithThumb(title: "3. Aplicar la Adrenalina RÁPIDAMENTE", imageName: "guias_aplicacion", thumbSize: 80)
-                    bullets([
-                        "Preparar el autoinyector/jeringa con la dosis correcta.",
-                        "Sitio: cara anterolateral del muslo, a medio camino entre cadera y rodilla.",
-                        "Inyección intramuscular con ángulo de 90°.",
-                        "Retirar aguja y masajear suavemente la zona."
-                    ])
-                }
-                
-                Card {
-                    Text("Qué hacer si detectas valores anormales")
-                        .font(.headline)
-                    bullet("Mantén la calma.", icon: "checkmark.seal.fill", color: .green)
-                    bullet("Repite la medición para confirmar.", icon: "checkmark.seal.fill", color: .green)
-                    bullet("Si hay riesgo, llama al 911 o usa el botón SOS.", icon: "exclamationmark.triangle.fill", color: .yellow)
-                    bullet("No suspendas tratamientos sin indicación médica.", icon: "info.circle.fill", color: .blue)
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-        }
-        .background(Color(.systemGroupedBackground))
+        .padding(.bottom, 20)
     }
 }
 
-// Reutilizables
-
-// Tarjeta
 @ViewBuilder
 private func Card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -179,18 +213,25 @@ private func Card<Content: View>(@ViewBuilder _ content: () -> Content) -> some 
 private struct TitleWithThumb: View {
     let title: String
     let imageName: String?
-    var thumbSize: CGFloat = 60
+    let iconSystemName: String?
+    var thumbSize: CGFloat
 
-    init(title: String, imageName: String? = nil, thumbSize: CGFloat = 60) {
+    init(title: String, imageName: String? = nil, iconSystemName: String? = nil, thumbSize: CGFloat = 60) {
         self.title = title
         self.imageName = imageName
+        self.iconSystemName = iconSystemName
         self.thumbSize = thumbSize
     }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Text(title).font(.headline).fontWeight(.semibold)
+            Text(title)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(.blue)
+            
             Spacer()
+            
             Group {
                 if let name = imageName, UIImage(named: name) != nil {
                     Image(name)
@@ -198,32 +239,32 @@ private struct TitleWithThumb: View {
                         .scaledToFill()
                         .frame(width: thumbSize, height: thumbSize)
                         .clipShape(RoundedRectangle(cornerRadius: 10))
-                } else {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(.systemGray5))
+                } else if let iconName = iconSystemName {
+                    Image(systemName: iconName)
+                        .font(.system(size: 30))
+                        .foregroundColor(.blue.opacity(0.6))
                         .frame(width: thumbSize, height: thumbSize)
-                        .overlay(Image(systemName: "photo").foregroundStyle(.secondary))
+                        .background(Color.blue.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
         }
     }
 }
 
-// Viñetas
 @ViewBuilder
 private func bullets(_ items: [String]) -> some View {
     VStack(alignment: .leading, spacing: 6) {
-        ForEach(items, id: \.self) { bullet($0) }
+        ForEach(items, id: \.self) { item in
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: "circle.fill")
+                    .font(.system(size: 6))
+                    .foregroundStyle(.gray)
+                    .padding(.top, 7)
+                Text(item)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
-}
-@ViewBuilder
-private func bullet(_ text: String, icon: String = "circle.fill", color: Color = .secondary) -> some View {
-    HStack(alignment: .top, spacing: 8) {
-        Image(systemName: icon).font(.system(size: 8)).foregroundStyle(color).padding(.top, 6)
-        Text(text)
-    }
-}
-
-#Preview {
-    GuiasView()
 }
