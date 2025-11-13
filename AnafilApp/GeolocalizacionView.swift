@@ -9,7 +9,7 @@ import SwiftUI
 
 struct GeolocalizacionView: View {
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             // Header
             HStack {
                 Text("AnafilApp")
@@ -23,8 +23,9 @@ struct GeolocalizacionView: View {
             }
             .padding(.horizontal)
             .padding(.top, 12)
+            .padding(.bottom, 8)
             
-            Spacer()
+            Spacer().frame(height: 16)
             
             // Mapa
             RoundedRectangle(cornerRadius: 16)
@@ -44,7 +45,7 @@ struct GeolocalizacionView: View {
                 )
                 .frame(height: 180)
                 .padding(.horizontal)
-            Spacer()
+            Spacer().frame(height: 24)
             // Título sección
             HStack {
                 Text("Hospitales más cercanos")
@@ -53,8 +54,10 @@ struct GeolocalizacionView: View {
             }
             .padding(.horizontal)
             
+            Spacer().frame(height: 24)
+            
             // Lista de 3 hospitales más cercanos
-            VStack(spacing: 26) {
+            VStack(spacing: 20) {
                 HospitalRowMock(
                     imageName: "hospital1",
                     nombre: "Hospital Angelopolitano",
@@ -76,38 +79,9 @@ struct GeolocalizacionView: View {
                 )
             }
             .padding(.horizontal)
-            
-            
-            Spacer()
-            
+            Spacer(minLength: 0)
             // Tab bar (mock, estático)
-            HStack(spacing: 30) {
-                Image(systemName: "house.fill")
-                NavigationLink{
-                    BotiquinView()
-                } label: {
-                    Image(systemName: "cross.case.fill")
-                }
-                ZStack {
-                    Circle().fill(Color(.systemBackground))
-                        .frame(width: 56, height: 56)
-                        .shadow(color: .black.opacity(0.15), radius: 6, y: 2)
-                    Text("SOS")
-                        .font(.headline)
-                }
-                NavigationLink{
-                    GuiasView()
-                } label: {
-                    Image(systemName: "book.fill")
-                }
-                NavigationLink {
-                    DatosPersonalesView()
-                } label: {
-                    Image(systemName: "person.crop.circle.fill")
-                }
-            }
-            .font(.title2)
-            .padding(.vertical, 10)
+            MenuInferior(activeTab: "home")
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)

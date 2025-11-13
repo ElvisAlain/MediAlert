@@ -16,9 +16,9 @@ struct NotificacionesView: View {
     private var sortedNotificaciones: [HistorialAcciones] {
         currentUser?.historialAcciones.sorted(by: {$0.fecha_hora > $1.fecha_hora}) ?? []
     }
+    
     var body: some View {
         VStack(spacing: 0) {
-            
             // Header
             HStack {
                 Label("Notificaciones", systemImage: "bell.fill")
@@ -31,7 +31,7 @@ struct NotificacionesView: View {
             }
             .padding(.horizontal)
             .padding(.top, 12)
-            Spacer()
+            .padding(.bottom, 8)
             
             // Lista de tarjetas
             ScrollView {
@@ -47,43 +47,10 @@ struct NotificacionesView: View {
                     }
                 }
                 .padding(.horizontal)
-                .padding(.bottom, 8)
+                .padding(.vertical, 12)
             }
-            
-            Spacer(minLength:0)
-            
-            // Tab var
-            HStack(spacing: 30) {
-                NavigationLink{
-                    GeolocalizacionView()
-                } label: {
-                    Image(systemName: "house.fill")
-                }
-                NavigationLink {
-                    BotiquinView()
-                } label: {
-                    Image(systemName: "cross.case.fill")
-                }
-                ZStack {
-                    Circle().fill(Color(.systemBackground))
-                        .frame(width: 56, height: 56)
-                        .shadow(color: .black.opacity(0.15), radius: 6, y: 2)
-                    Text("SOS")
-                        .font(.headline)
-                }
-                NavigationLink{
-                    GuiasView()
-                } label: {
-                    Image(systemName: "book.fill")
-                }
-                NavigationLink{
-                    DatosPersonalesView()
-                } label: {
-                    Image(systemName: "person.crop.circle.fill")
-                }
-            }
-            .font(.title2)
-            .padding(.vertical, 10)
+            Spacer(minLength: 0)
+            MenuInferior(activeTab: "")
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)

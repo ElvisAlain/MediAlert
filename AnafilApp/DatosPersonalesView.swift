@@ -317,30 +317,8 @@ struct DatosPersonalesView: View {
             .padding(.vertical, 4)
             
             // Tab bar (mock, estático)
-            HStack(spacing: 30) {
-                NavigationLink{
-                    GeolocalizacionView()
-                } label: {
-                    Image(systemName: "house.fill")
-                }
-                NavigationLink{
-                    BotiquinView()
-                } label: {
-                    Image(systemName: "cross.case.fill")
-                }
-                ZStack {
-                    Circle().fill(Color(.systemBackground))
-                        .frame(width: 56, height: 56)
-                        .shadow(color: .black.opacity(0.15), radius: 6, y: 2)
-                    Text("SOS")
-                        .font(.headline)
-                }
-                NavigationLink {GuiasView()} label: {Image(systemName: "book.fill")}
-                // Image(systemName: "book.fill")
-                Image(systemName: "person.crop.circle.fill")
-            }
-            .font(.title2)
-            .padding(.vertical, 10)
+            Spacer(minLength: 0)
+            MenuInferior(activeTab: "perfil")
         }
         .background(Color(.systemGroupedBackground))
         .navigationBarBackButtonHidden(true)
