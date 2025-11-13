@@ -12,12 +12,10 @@ struct NotificacionesView: View {
     // Conexión a SwiftData
     @Query(sort: \User.nombre) var users: [User]
     var currentUser: User? { users.first }
-    @Environment(\.modelContext) private var modelContext
-    @State private var timer = Timer.publish(every: 20, on: .main, in: .common).autoconnect()
+    // Calculamos las notificaciones ordenadas
     private var sortedNotificaciones: [HistorialAcciones] {
         currentUser?.historialAcciones.sorted(by: {$0.fecha_hora > $1.fecha_hora}) ?? []
     }
-    
     var body: some View {
         VStack(spacing: 0) {
             
@@ -51,12 +49,7 @@ struct NotificacionesView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 8)
             }
-            .onAppear {
-                checarYEnviarNotificacion()
-            }
-            .onReceive(timer) { _ in
-                checarYEnviarNotificacion()
-            }
+            
             Spacer(minLength:0)
             
             // Tab var
@@ -66,7 +59,6 @@ struct NotificacionesView: View {
                 } label: {
                     Image(systemName: "house.fill")
                 }
-                // Image(systemName: "house.fill")
                 NavigationLink {
                     BotiquinView()
                 } label: {
@@ -84,7 +76,6 @@ struct NotificacionesView: View {
                 } label: {
                     Image(systemName: "book.fill")
                 }
-                // Image(systemName: "book.fill")
                 NavigationLink{
                     DatosPersonalesView()
                 } label: {
@@ -130,28 +121,6 @@ struct NotificacionesView: View {
             )
         }
     }
-    private func checarYEnviarNotificacion() { // Lógica de notificaciones recurrentes
-        guard let user = currentUser else {return}
-        guard user.isProfileIncomplete() else { // Revisar si el perfil sigue incompleto
-            return
-        }
-        let ultimasNotis = sortedNotificaciones.filter { $0.tipo_accion == .profileUpdate} // Filtrar notis de Completar Datos
-        let tiempoDeEspera: TimeInterval = 20 // 2min para testear
-        // let tiempoDeEspera: TimeInterval = 172800 // (2 * 24 * 60 * 60) --> 2 días (lo planeado...)
-        let debeEnviarNuevaNoti: Bool
-        if let ultimaNoti = ultimasNotis.first {
-            debeEnviarNuevaNoti = Date().timeIntervalSince(ultimaNoti.fecha_hora) > tiempoDeEspera // Si hay una, checar si ya pasó el tiempo
-        } else {
-            debeEnviarNuevaNoti = true
-        }
-        if debeEnviarNuevaNoti {
-            let nuevaNoti = HistorialAcciones(
-                tipo_accion: .profileUpdate, detalle: "No olvides llenar los campos de Datos Personales, tu información es muy importante."
-            )
-            modelContext.insert(nuevaNoti) // SwiftData lo guarda
-            user.historialAcciones.append(nuevaNoti)
-        }
-    }
 }
 
 // Componente de tarjeta de notificación
@@ -180,4 +149,3 @@ struct NotiCard: View {
         )
     }
 }
-
