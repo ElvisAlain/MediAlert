@@ -24,10 +24,7 @@ struct NotificacionesView: View {
                 Label("Notificaciones", systemImage: "bell.fill")
                     .font(.title3.weight(.semibold))
                 Spacer()
-                HStack(spacing: 14) {
-                    Image(systemName: currentUser?.idiomaSeleccionado == "Español" ? "globe": "globe.fill")
-                }
-                .font(.title3)
+                LanguageButton()
             }
             .padding(.horizontal)
             .padding(.top, 12)

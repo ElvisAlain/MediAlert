@@ -20,7 +20,7 @@ struct GuiasView: View {
                     Spacer()
                     HStack(spacing: 14) {
                         NotificacionesBellView()
-                        Image(systemName: "globe")
+                        LanguageButton()
                     }
                     .font(.title3)
                 }
