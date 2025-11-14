@@ -117,6 +117,27 @@ struct SOSDragButton: View {
         )
         modelContext.insert(nuevaNoti)
         user.historialAcciones.append(nuevaNoti)
-        // Falta aquí lo del mensaje al contacto de emergencia =)
+        // Preparar la info
+        let numeroLimpio = user.contactoEmergencia.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+        let mensajeEmergencia = """
+        ¡AYUDA! soy \(user.nombre). Estoy teniendo un posible episodio de ANAFILAXIA.
+        Ubicación: (Ubicación Actual)
+        Sangre: \(user.tipoSangre)
+        Alergias: \(user.alergias)
+        Diagnóstico: \(user.diagnostico)
+        """
+        print("Intentando contactar a: \(numeroLimpio)")
+        print("Mensaje preparado: \(mensajeEmergencia)")
+        
+        if let url = URL(string: "tel://\(numeroLimpio)"), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            print("Error: No se puede realizar la llamada. Probablemente estamos en el simulador...")
+        }
+        /* NOTA TÉCNICA SOBRE SMS:
+            iOS bloquea enviar SMS y llamar al mismo tiempo.
+            Si prefieres enviar el SMS en lugar de llamar, cambia "tel://" por "sms:".
+            Pero la llamada es más efectiva en una anafilaxia.
+        */
     }
 }
