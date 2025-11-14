@@ -6,8 +6,12 @@
 //
 
 import SwiftUI
+import MapKit
+import _MapKit_SwiftUI
 
 struct GeolocalizacionView: View {
+    @State private var locationManager = LocationManager() // Iniciar el Manager
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -28,59 +32,65 @@ struct GeolocalizacionView: View {
             Spacer().frame(height: 16)
             
             // Mapa
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-                .overlay(
-                    Group {
-                        if UIImage(named: "mapa") != nil {
-                            Image("mapa")
-                                .resizable()
-                                .scaledToFill()
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                        } else {
-                            Text("Mapa (placeholder)")
-                                .foregroundColor(.secondary)
-                        }
+            ZStack(alignment: .topTrailing) {
+                Map(position: .constant(.region(locationManager.region))) {
+                    // Tu posición
+                    Annotation("Yo", coordinate: locationManager.region.center) {
+                        Image(systemName: "person.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.title)
+                            .background(Circle().fill(.white))
                     }
-                )
-                .frame(height: 180)
-                .padding(.horizontal)
-            Spacer().frame(height: 24)
-            // Título sección
-            HStack {
+                    // Pines de Hospitales
+                    ForEach(locationManager.hospitals, id: \.self) {item in
+                        Marker(item.name ?? "Hospital", systemImage: "cross.fill", coordinate: item.placemark.coordinate)
+                            .tint(.red)
+                    }
+                }
+                .frame(height: 320)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                
+                // Botón para recentrar
+                Button(action: {
+                    locationManager.manager.startUpdatingLocation()
+                }) {
+                    Image(systemName: "location.fill")
+                        .padding(10)
+                        .background(Color(.systemBackground))
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+                .padding()
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            
+            Spacer().frame(height: 20)
+            
+            // Lista de Hospitales
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Hospitales más cercanos")
                     .font(.headline)
-                Spacer()
+                    .padding(.horizontal)
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Mostramos sólo los 3 primeros
+                        ForEach(locationManager.hospitals.prefix(3), id: \.self) { item in
+                            HospitalRow(item: item)
+                        }
+                        if locationManager.hospitals.isEmpty {
+                            Text("Buscando hospitales...")
+                                .foregroundStyle(.secondary)
+                                .padding()
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
+                }
             }
-            .padding(.horizontal)
-            
-            Spacer().frame(height: 24)
-            
-            // Lista de 3 hospitales más cercanos
-            VStack(spacing: 20) {
-                HospitalRowMock(
-                    imageName: "hospital1",
-                    nombre: "Hospital Angelopolitano",
-                    tipo: "Hospital privado",
-                    detalle: "Abierto las 24 horas\n222 246 5688"
-                )
-
-                HospitalRowMock(
-                    imageName: "hospital2",
-                    nombre: "Hospital Puebla",
-                    tipo: "Hospital privado",
-                    detalle: "Abierto las 24 horas\n222 594 0600"
-                )
-                HospitalRowMock(
-                    imageName: "hospital3",
-                    nombre: "Hospital General de Cholula",
-                    tipo: "Hospital general",
-                    detalle: "Abierto las 24 horas\n222 214 4300"
-                )
-            }
-            .padding(.horizontal)
+            // Menú Inferior
             Spacer(minLength: 0)
-            // Tab bar (mock, estático)
             MenuInferior(activeTab: "home")
         }
         .navigationBarBackButtonHidden(true)
@@ -88,61 +98,50 @@ struct GeolocalizacionView: View {
     }
 }
 
-struct HospitalRowMock: View {
-    let imageName: String
-    let nombre: String
-    let tipo: String
-    let detalle: String
+struct HospitalRow: View {
+    let item: MKMapItem
     
     var body: some View {
         HStack(spacing: 12) {
+            // Icono de Hospital
             ZStack {
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(Color(.secondarySystemBackground))
-                Group {
-                    if UIImage(named: imageName) != nil {
-                        Image(imageName)
-                            .resizable()
-                            .aspectRatio(85.0/70.0, contentMode: .fill)
-                            .frame(width: 85, height: 70)
-                            .clipped()
-                        
-                    } else {
-                        Image(systemName: "building.2.crop.circle")
-                            .font(.title2)
-                            .foregroundColor(.secondary)
-                            .frame(width: 85, height: 70)
-                            .background(Color(.secondarySystemBackground))
-                            .clipShape(RoundedRectangle(cornerRadius: 9))
-                    }
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 60, height: 60)
+                
+                Image(systemName: "cross.case.fill")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+            }
+            
+            // Info del Hospital
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.name ?? "Hospital Desconocido")
+                    .font(.subheadline).fontWeight(.semibold)
+                    .lineLimit(1)
+                
+                // Categoría o Dirección
+                Text(item.placemark.title ?? "Dirección no disponible")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                
+                // Teléfono (si tiene)
+                if let phone = item.phoneNumber {
+                    Text(phone)
+                        .font(.caption2)
+                        .foregroundColor(.gray)
                 }
             }
-            .frame(width: 85, height: 70)
-            .clipShape(RoundedRectangle(cornerRadius: 9))
             
-            VStack(alignment: .leading, spacing: 4) {
-                Text(nombre).font(.subheadline).fontWeight(.semibold)
-                Text(tipo).font(.footnote).foregroundColor(.secondary)
-                Text(detalle)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
             Spacer()
-            Image(systemName: "location.circle")
-                .font(.title3)
-                .foregroundColor(.teal)
+         
         }
-        .padding(4)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 9)
+            RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.4), radius: 3, y: 5)
+                .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
         )
     }
-}
-
-#Preview {
-    NavigationStack { GeolocalizacionView() }
 }
