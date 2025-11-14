@@ -15,6 +15,9 @@ struct DatosPersonalesView: View {
     @Query(sort: \User.nombre) var users: [User] // Cargar Usuario
     var currentUser: User? { users.first }
     
+    // 1. Acceso a Idioma
+    var isEnglish: Bool { currentUser?.idiomaSeleccionado == "English" }
+    
     // Estados locales para la edición
     @State private var nombre: String = ""
     @State private var apellidos: String = ""
@@ -27,6 +30,7 @@ struct DatosPersonalesView: View {
     @State private var tipoSangre: String = ""
     @State private var diagnostico: String = ""
     @State private var alergias: String = ""
+    
     // Estados para el manejo de Errores
     @State private var nombreError: String? = nil
     @State private var apellidosError: String? = nil
@@ -38,11 +42,12 @@ struct DatosPersonalesView: View {
     @State private var tipoSangreError: String? = nil
     @State private var diagnosticoError: String? = nil
     @State private var alergiasError: String? = nil
+    
     // Estados para la Foto de Perfil
     @State private var profileImage: Image? // Mostrar en UI
     @State private var profileImageData: Data? // Guardar en DB
     @State private var selectedPhotoItem: PhotosPickerItem?
-    @State private var showPhotoOptions: Bool = false // Para el menú Galería o Cámara
+    // Para Galería
     @State private var showPhotoGallery: Bool = false
     
     // Cargar los datos del modelo
@@ -81,12 +86,7 @@ struct DatosPersonalesView: View {
         tipoSangreError = nil
         diagnosticoError = nil
         alergiasError = nil
-        nombreError = nil
-        apellidosError = nil
-        direccionError = nil
-        diagnosticoError = nil
-        alergiasError = nil
-        }
+    }
     
     // Calcular Edad
     private func calculateAge(from date: Date) -> Int {
@@ -100,80 +100,83 @@ struct DatosPersonalesView: View {
     private func validateAndSave() {
         clearErrors() // Limpiar errores antiguos
         var isValid = true
+        
         if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            nombreError = "Falta el nombre."
+            nombreError = isEnglish ? "Name is missing." : "Falta el nombre."
             isValid = false
         }
         if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            apellidosError = "Faltan los apellidos."
+            apellidosError = isEnglish ? "Last name is missing." : "Faltan los apellidos."
             isValid = false
         }
         if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) {
-            telefonoError = "El teléfono propio debe tener 10 dígitos válidos."
+            telefonoError = isEnglish ? "Phone must have 10 valid digits." : "El teléfono propio debe tener 10 dígitos válidos."
             isValid = false
         }
         if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) {
-            contactoError = "El contacto de emergencia debe tener 10 dígitos válidos."
+            contactoError = isEnglish ? "Emergency contact must have 10 valid digits." : "El contacto de emergencia debe tener 10 dígitos válidos."
             isValid = false
         }
         if direccion.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            direccionError = "Falta la dirección."
+            direccionError = isEnglish ? "Address is missing." : "Falta la dirección."
             isValid = false
         }
         if diagnostico.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            diagnosticoError = "Falta el diagnóstico."
+            diagnosticoError = isEnglish ? "Diagnosis is missing." : "Falta el diagnóstico."
             isValid = false
         }
         if alergias.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            alergiasError = "Falta(n) la(s) alergía(s)."
+            alergiasError = isEnglish ? "Allergy(ies) missing." : "Falta(n) la(s) alergía(s)."
             isValid = false
         }
         if peso <= 0.0 {
-            pesoError = "El peso debe ser mayor a 0."
+            pesoError = isEnglish ? "Weight must be greater than 0." : "El peso debe ser mayor a 0."
             isValid = false
         }
-        if sexo == "No especificado" {
-            sexoError = "Selecciona un sexo."
+        // Nota: Comparamos con el string en español porque es el valor por defecto en el modelo,
+        // pero si el usuario selecciona en inglés, se guardará el valor en inglés.
+        if sexo == "No especificado" || sexo == "Unspecified" {
+            sexoError = isEnglish ? "Select a sex." : "Selecciona un sexo."
             isValid = false
         }
         if tipoSangre == "N/A" {
-            tipoSangreError = "Selecciona un tipo de sangre."
+            tipoSangreError = isEnglish ? "Select a blood type." : "Selecciona un tipo de sangre."
             isValid = false
         }
-        // Si ya falló en algo, no continuamos
+        
         guard isValid else { return }
         
-        // Sólo se ejecuta si los campos No están vacíos
+        // Validaciones de longitud
         let maxNombre = 25
         let maxApellidos = 25
-        let maxOtros = 40 // Diagnóstico | Dirección | Alergias
+        let maxOtros = 40
+        
         if nombre.count > maxNombre {
-            nombreError = "El nombre no debe exceder los \(maxNombre) caracteres."
+            nombreError = isEnglish ? "Name must not exceed \(maxNombre) characters." : "El nombre no debe exceder los \(maxNombre) caracteres."
             isValid = false
         }
         if apellidos.count > maxApellidos {
-            apellidosError = "Los apellidos no debe exceder los \(maxApellidos) caracteres."
+            apellidosError = isEnglish ? "Last name must not exceed \(maxApellidos) characters." : "Los apellidos no debe exceder los \(maxApellidos) caracteres."
             isValid = false
         }
         if direccion.count > maxOtros {
-            direccionError = "La dirección no debe exceder los \(maxOtros) caracteres."
+            direccionError = isEnglish ? "Address must not exceed \(maxOtros) characters." : "La dirección no debe exceder los \(maxOtros) caracteres."
             isValid = false
         }
         if diagnostico.count > maxOtros {
-            diagnosticoError = "El diagnóstico no debe exceder los \(maxOtros) caracteres."
+            diagnosticoError = isEnglish ? "Diagnosis must not exceed \(maxOtros) characters." : "El diagnóstico no debe exceder los \(maxOtros) caracteres."
             isValid = false
         }
         if alergias.count > maxOtros {
-            alergiasError = "Las alergias no debe exceder los \(maxOtros) caracteres."
+            alergiasError = isEnglish ? "Allergies must not exceed \(maxOtros) characters." : "Las alergias no debe exceder los \(maxOtros) caracteres."
             isValid = false
         }
         
-        // Si no es válido, nos detenemos aquí
         guard isValid else { return }
         
-        // Si sí es válido, guardamos los datos en el modelo
+        // Guardar
         guard let user = currentUser else { return }
-            
+        
         user.nombre = nombre
         user.apellidos = apellidos
         user.telefono = telefono
@@ -186,8 +189,7 @@ struct DatosPersonalesView: View {
         user.diagnostico = diagnostico
         user.alergias = alergias
         user.profileImageData = profileImageData
-            
-        // Salir del Modo edición y Mostrar Alerta
+        
         isEditing = false
         withAnimation{ showSaveConfirmation = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
@@ -197,8 +199,9 @@ struct DatosPersonalesView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Header
             HStack {
-                Label("Datos Personales", systemImage: "info.circle")
+                Label(isEnglish ? "Personal Data" : "Datos Personales", systemImage: "info.circle")
                     .font(.title3.weight(.semibold))
                 Spacer()
                 HStack(spacing: 14) {
@@ -211,6 +214,7 @@ struct DatosPersonalesView: View {
             .padding(.top, 12)
             .padding(.bottom, 8)
 
+            // Info Usuario
             HStack(spacing: 12) {
                 ZStack {
                     Circle().fill(Color(.secondarySystemBackground))
@@ -218,7 +222,7 @@ struct DatosPersonalesView: View {
                         profileImage
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 56, height: 56) // Aseguramos el tamaño
+                            .frame(width: 56, height: 56)
                             .clipShape(Circle())
                     } else {
                         Image(systemName: "person.crop.circle.fill")
@@ -234,16 +238,15 @@ struct DatosPersonalesView: View {
                             .foregroundStyle(.white)
                             .font(.title3)
                     }
-                    
                 }
                 .frame(width: 56, height: 56)
                 .onTapGesture {
                     if isEditing {
-                        showPhotoOptions = true // Activa el menú de opciones
+                        showPhotoGallery = true
                     }
                 }
 
-                Text(currentUser?.nombre ?? "Usuario no encontrado")
+                Text(currentUser?.nombre ?? (isEnglish ? "User not found" : "Usuario no encontrado"))
                     .font(.title3.weight(.semibold))
                 Spacer()
                 
@@ -254,9 +257,8 @@ struct DatosPersonalesView: View {
                         loadUserData()
                         isEditing.toggle()
                     }
-                    
                 } label: {
-                    Text(isEditing ? "Guardar" : "Editar")
+                    Text(isEditing ? (isEnglish ? "Save" : "Guardar") : (isEnglish ? "Edit" : "Editar"))
                         .font(.callout.weight(.semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 10)
@@ -274,28 +276,32 @@ struct DatosPersonalesView: View {
                 if currentUser != nil {
                     // Opciones de Tipos de Sangre
                     let bloodTypes = ["N/A", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
-                    let sexOptions = ["No especificado","Hombre", "Mujer", "Otro"]
+                    // Opciones de sexo según idioma
+                    let sexOptions = isEnglish ? ["Unspecified", "Male", "Female", "Other"] : ["No especificado","Hombre", "Mujer", "Otro"]
                     
                     VStack(spacing: 14) {
-                        ChipRow(titulo: "Nombre: ", text: $nombre, editable: isEditing, error: nombreError)
-                        ChipRow(titulo: "Apellidos: ", text: $apellidos, editable: isEditing, error: apellidosError)
-                        ChipRow(titulo: "Teléfono: ", text: $telefono, editable: isEditing, error: telefonoError)
-                        ChipRow(titulo: "Contacto Emergencias: ", text: $contactoEmergencia, editable: isEditing, error: contactoError)
-                        ChipRow(titulo: "Dirección: ", text: $direccion, editable: isEditing, error: direccionError)
-                        PickerChipRow(titulo: "Sexo: ", selection: $sexo, options: sexOptions, editable: isEditing, error: sexoError)
-                        DoubleChipRow(titulo: "Peso (Kg) :", value: $peso, editable: isEditing, error: pesoError)
-                        DateChipRow(titulo: "Fecha de Nacimiento: ", selection: $fechaNacimiento, editable: isEditing)
-                        ChipRow(titulo: "Edad: ", text: .constant("\(calculateAge(from: fechaNacimiento)) años"), editable: false)
-                        PickerChipRow(titulo: "Tipo de sangre: ", selection: $tipoSangre, options: bloodTypes, editable: isEditing, error: tipoSangreError)
-                        ChipRow(titulo: "Diagnóstico: ", text: $diagnostico, editable: isEditing, error: diagnosticoError)
-                        ChipRow(titulo: "Alergias: ", text: $alergias, editable: isEditing, error: alergiasError)
+                        ChipRow(titulo: isEnglish ? "Name: " : "Nombre: ", text: $nombre, editable: isEditing, error: nombreError)
+                        ChipRow(titulo: isEnglish ? "Last Name: " : "Apellidos: ", text: $apellidos, editable: isEditing, error: apellidosError)
+                        ChipRow(titulo: isEnglish ? "Phone: " : "Teléfono: ", text: $telefono, editable: isEditing, error: telefonoError)
+                        ChipRow(titulo: isEnglish ? "Emergency Contact: " : "Contacto Emergencias: ", text: $contactoEmergencia, editable: isEditing, error: contactoError)
+                        ChipRow(titulo: isEnglish ? "Address: " : "Dirección: ", text: $direccion, editable: isEditing, error: direccionError)
+                        PickerChipRow(titulo: isEnglish ? "Sex: " : "Sexo: ", selection: $sexo, options: sexOptions, editable: isEditing, error: sexoError)
+                        DoubleChipRow(titulo: isEnglish ? "Weight (Kg):" : "Peso (Kg) :", value: $peso, editable: isEditing, error: pesoError)
+                        DateChipRow(titulo: isEnglish ? "Date of Birth: " : "Fecha de Nacimiento: ", selection: $fechaNacimiento, editable: isEditing)
+                        
+                        let anosText = isEnglish ? " years" : " años"
+                        ChipRow(titulo: isEnglish ? "Age: " : "Edad: ", text: .constant("\(calculateAge(from: fechaNacimiento))" + anosText), editable: false)
+                        
+                        PickerChipRow(titulo: isEnglish ? "Blood Type: " : "Tipo de sangre: ", selection: $tipoSangre, options: bloodTypes, editable: isEditing, error: tipoSangreError)
+                        ChipRow(titulo: isEnglish ? "Diagnosis: " : "Diagnóstico: ", text: $diagnostico, editable: isEditing, error: diagnosticoError)
+                        ChipRow(titulo: isEnglish ? "Allergies: " : "Alergias: ", text: $alergias, editable: isEditing, error: alergiasError)
                     }
                     .padding(.horizontal)
                     .padding(.top, 12)
                     .padding(.bottom, 8)
                     .onAppear { if !isEditing { loadUserData() } }
                 } else {
-                    Text("Cargando Datos del Usuario...")
+                    Text(isEnglish ? "Loading User Data..." : "Cargando Datos del Usuario...")
                         .foregroundColor(.gray)
                         .padding()
                 }
@@ -303,7 +309,7 @@ struct DatosPersonalesView: View {
             
             VStack {
                 if showSaveConfirmation {
-                    Text("¡Datos guardados!")
+                    Text(isEnglish ? "Data saved!" : "¡Datos guardados!")
                         .font(.caption.weight(.semibold))
                         .padding(12)
                         .frame(maxWidth: .infinity)
@@ -316,30 +322,20 @@ struct DatosPersonalesView: View {
             .padding(.horizontal)
             .padding(.vertical, 4)
             
-            // Tab bar (mock, estático)
+            // Tab bar
             Spacer(minLength: 0)
             MenuInferior(activeTab: "perfil")
         }
         .background(Color(.systemGroupedBackground))
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
-        .confirmationDialog("Seleccionar Foto", isPresented: $showPhotoOptions){
-            Button("Elegir de la Galería") {
-                showPhotoGallery = true // Activa .photosPicker
-            }
-            Button("Tomar Foto") {
-                print("Cámara no Implementada aún...")
-            }
-            Button("Cancelar", role: .cancel) {}
-        }
         .photosPicker(isPresented: $showPhotoGallery, selection: $selectedPhotoItem, matching: .images)
         .onChange(of: selectedPhotoItem) {_, newItem in
-            // Tarea para procesar la imagen seleccionada
             Task {
                 if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                    self.profileImageData = data // Guarda Data
+                    self.profileImageData = data
                     if let uiImage = UIImage(data: data) {
-                        self.profileImage = Image(uiImage: uiImage) // Mostrar Imagen
+                        self.profileImage = Image(uiImage: uiImage)
                     }
                 }
             }
@@ -506,11 +502,11 @@ struct PickerChipRow: View {
                                 Text(option).tag(option)
                             }
                         }
-                        .pickerStyle(.menu) // Estilo de menú desplegable
-                        .tint(.primary) // Para que el texto no sea azul
+                        .pickerStyle(.menu)
+                        .tint(.primary)
                         
                     } else {
-                        Text(selection) // Solo muestra el texto
+                        Text(selection)
                     }
                 }
                 Spacer()
@@ -551,7 +547,7 @@ struct DateChipRow: View {
                         DatePicker(
                             "",
                             selection: $selection,
-                            in: ...Date(), // No permite fechas futuras
+                            in: ...Date(),
                             displayedComponents: .date
                         )
                         .labelsHidden()

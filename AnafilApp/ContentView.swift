@@ -42,6 +42,9 @@ struct ContentView: View {
         case nombre, apellidos, telefono, emergencia
     }
     
+    // Computed property para saber si es inglés (facilita la lectura en la vista)
+    private var isEnglish: Bool { idiomaSeleccionado == "English" }
+    
     private func clearErrors() {
         nombreError = nil
         apellidosError = nil
@@ -54,34 +57,34 @@ struct ContentView: View {
         clearErrors() // limpiar errores anteriores
         
         if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar nombre
-            nombreError = "Falta el nombre."
+            nombreError = isEnglish ? "Name is missing." : "Falta el nombre."
             focusedField = .nombre
             return false
         }
         if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar apellidos
-            apellidosError = "Faltan los apellidos."
+            apellidosError = isEnglish ? "Last name is missing." : "Faltan los apellidos."
             focusedField = .apellidos
             return false
         }
         if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) { // Validar teléfono propio
-            telefonoError = "El teléfono propio debe tener 10 dígitos válidos."
+            telefonoError = isEnglish ? "Phone number must have 10 valid digits." : "El teléfono propio debe tener 10 dígitos válidos."
             focusedField = .telefono
             return false
         }
         if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) { // Validar contacto de Emergencia
-            contactoError = "El contacto de emergencia debe tener 10 dígitos válidos."
+            contactoError = isEnglish ? "Emergency contact must have 10 valid digits." : "El contacto de emergencia debe tener 10 dígitos válidos."
             focusedField = .emergencia
             return false
         }
         if !isAdultConfirmed {
-            ageError = "Debes confirmar este campo para continuar."
+            ageError = isEnglish ? "You must confirm this field to continue." : "Debes confirmar este campo para continuar."
             return false
         }
         return true
     }
     
     func saveAndNavigate() {
-       // Instancia del modelo Swift Data --> User
+        // Instancia del modelo Swift Data --> User
         let newUser = User(
             nombre: nombre,
             apellidos: apellidos,
@@ -94,12 +97,13 @@ struct ContentView: View {
             fechaNacimiento: Date(),
             tipoSangre: "N/A",
             diagnostico: "N/A",
-            alergias: "No especificada",
+            alergias: "No especificada"
         )
         if newUser.isProfileIncomplete() { // Añadir primera notificación cuando el perfil está incompleto
+            let msg = isEnglish ? "Don't forget to fill in the Personal Data fields, your information is very important." : "No olvides llenar los campos de Datos Personales, tu información es muy importante."
             let primeraNoti = HistorialAcciones (
                 tipo_accion: .profileUpdate,
-                detalle: "No olvides llenar los campos de Datos Personales, tu información es muy importante."
+                detalle: msg
             )
             newUser.historialAcciones.append(primeraNoti)
         }
@@ -128,20 +132,20 @@ struct ContentView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "doc.text")
                         .font(.title3)
-                    Text("Registro")
+                    Text(isEnglish ? "Registration" : "Registro")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
                 .padding(.top, 16)
                 
-                Text("Ingresa los datos solicitados:")
+                Text(isEnglish ? "Enter requested data:" : "Ingresa los datos solicitados:")
                     .font(.subheadline)
                     .foregroundColor(.gray)
                 
                 // Campos de texto
                 VStack(spacing: 6) {
                     VStack(spacing: 6) {
-                        TextField("Nombre(s)", text: $nombre)
+                        TextField(isEnglish ? "Name(s)" : "Nombre(s)", text: $nombre)
                             .textFieldStyle(.roundedBorder)
                             .focused($focusedField, equals: .nombre)
                         if let error = nombreError {
@@ -153,7 +157,7 @@ struct ContentView: View {
                         }
                     }
                     VStack(spacing: 6) {
-                        TextField("Apellidos", text: $apellidos)
+                        TextField(isEnglish ? "Last Name" : "Apellidos", text: $apellidos)
                             .textFieldStyle(.roundedBorder)
                             .focused($focusedField, equals: .apellidos)
                         if let error = apellidosError {
@@ -170,8 +174,13 @@ struct ContentView: View {
                         Button("English") { idiomaSeleccionado = "English" }
                     } label: {
                         HStack {
-                            Text(idiomaSeleccionado.isEmpty ? " Selecciona idioma" : idiomaSeleccionado)
-                                .foregroundColor(idiomaSeleccionado.isEmpty ? .gray.opacity(0.6) : .primary)
+                            if idiomaSeleccionado.isEmpty {
+                                Text(isEnglish ? "Select Language" : "Selecciona idioma")
+                                    .foregroundColor(.gray.opacity(0.6))
+                            } else {
+                                Text(idiomaSeleccionado)
+                                    .foregroundColor(.primary)
+                            }
                             Spacer()
                             Image(systemName: "chevron.down")
                                 .foregroundColor(.gray.opacity(0.6))
@@ -185,8 +194,9 @@ struct ContentView: View {
                         )
                     }
                     .padding(.top, 6)
+                    
                     VStack(spacing: 6) {
-                        TextField("Teléfono (10 dígitos)", text: $telefono)
+                        TextField(isEnglish ? "Phone (10 digits)" : "Teléfono (10 dígitos)", text: $telefono)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad) // Solo números
                             .focused($focusedField, equals: .telefono)
@@ -199,7 +209,7 @@ struct ContentView: View {
                         }
                     }
                     VStack(spacing: 6) {
-                        TextField("Contacto de emergencia (Teléfono)", text: $contactoEmergencia)
+                        TextField(isEnglish ? "Emergency Contact (Phone)" : "Contacto de emergencia (Teléfono)", text: $contactoEmergencia)
                             .textFieldStyle(.roundedBorder)
                             .keyboardType(.numberPad)
                             .focused($focusedField, equals: .emergencia)
@@ -224,7 +234,7 @@ struct ContentView: View {
                             Image(systemName: isAdultConfirmed ? "checkmark.square.fill" : "square")
                                 .font(.title3)
                                 .foregroundColor(isAdultConfirmed ? .blue : .gray)
-                            Text("Soy mayor de edad o utilizo la aplicación bajo la supervición de un tutor.")
+                            Text(isEnglish ? "I am of legal age or use the application under the supervision of a guardian." : "Soy mayor de edad o utilizo la aplicación bajo la supervisión de un tutor.")
                                 .font(.footnote)
                                 .foregroundColor(.primary)
                                 .multilineTextAlignment(.leading)
@@ -240,13 +250,13 @@ struct ContentView: View {
                 .padding(.horizontal)
                 .padding(.top, 12)
                 
-                // Navegar a la segunda pantalla (mockup geolocalización)
+                // Navegar a la segunda pantalla
                 Button {
                     if validateForm() { // Validar al presionar el botón
                         saveAndNavigate()
                     }
                 } label: {
-                    Text("Crear Cuenta")
+                    Text(isEnglish ? "Create Account" : "Crear Cuenta")
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)

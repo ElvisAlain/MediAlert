@@ -12,6 +12,10 @@ struct NotificacionesView: View {
     // Conexión a SwiftData
     @Query(sort: \User.nombre) var users: [User]
     var currentUser: User? { users.first }
+    
+    // 1. Acceso a Idioma
+    var isEnglish: Bool { currentUser?.idiomaSeleccionado == "English" }
+    
     // Calculamos las notificaciones ordenadas
     private var sortedNotificaciones: [HistorialAcciones] {
         currentUser?.historialAcciones.sorted(by: {$0.fecha_hora > $1.fecha_hora}) ?? []
@@ -19,12 +23,17 @@ struct NotificacionesView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            
             // Header
             HStack {
-                Label("Notificaciones", systemImage: "bell.fill")
+                Label(isEnglish ? "Notifications" : "Notificaciones", systemImage: "bell.fill")
                     .font(.title3.weight(.semibold))
                 Spacer()
-                LanguageButton()
+                HStack(spacing: 14) {
+                    // Aquí solo ponemos el botón de idioma, ya que estamos en la vista de notificaciones
+                    LanguageButton()
+                }
+                .font(.title3)
             }
             .padding(.horizontal)
             .padding(.top, 12)
@@ -34,7 +43,7 @@ struct NotificacionesView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     if sortedNotificaciones.isEmpty {
-                        Text("No tienes notificaciones nuevas.")
+                        Text(isEnglish ? "You have no new notifications." : "No tienes notificaciones nuevas.")
                             .foregroundStyle(.secondary)
                             .padding(.top, 50)
                     } else {
@@ -46,7 +55,10 @@ struct NotificacionesView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 12)
             }
-            Spacer(minLength: 0)
+            
+            Spacer(minLength:0)
+            
+            // Menú Inferior (Sin selección activa)
             MenuInferior(activeTab: "")
         }
         .navigationBarBackButtonHidden(true)
@@ -70,15 +82,15 @@ struct NotificacionesView: View {
         switch accion.tipo_accion {
         case .profileUpdate:
             NotiCard(
-                titulo: "¡Completa Tus Datos!",
-                detalle: accion.detalle,
+                titulo: isEnglish ? "Complete Your Data!" : "¡Completa Tus Datos!",
+                detalle: accion.detalle, // El detalle se traduce al momento de CREARSE (en AnafilApp.swift)
                 trailing: AnyView(Image(systemName: "info.circle.fill")
                     .font(.title2)
                     .foregroundStyle(.gray))
             )
         case .sosCall:
             NotiCard(
-                titulo: "Botón SOS Activado",
+                titulo: isEnglish ? "SOS Button Activated" : "Botón SOS Activado",
                 detalle: accion.detalle,
                 trailing: AnyView(
                     ZStack {
@@ -127,7 +139,7 @@ struct NotiCard: View {
 
 struct NotificacionesBellView: View {
     @Query(sort: \User.nombre) var user: [User]
-    var currentUser: User? {user.first}
+    var currentUser: User? { user.first }
     
     var body: some View {
         NavigationLink {
@@ -140,7 +152,9 @@ struct NotificacionesBellView: View {
                     .padding(.trailing, 5)
                 
                 if let user = currentUser {
+                    // Contamos las notificaciones no leídas
                     let noLeidas = user.historialAcciones.filter{ !$0.leida }.count
+                    
                     if noLeidas > 0 {
                         Text("\(noLeidas)")
                             .font(.caption2).bold()

@@ -13,6 +13,9 @@ struct BotiquinView: View {
     @Query(sort: \User.nombre) var users: [User] // Conexión a SwiftData
     var currentUser: User? {users.first}
     
+    // 1. Acceso a Idioma
+    var isEnglish: Bool { currentUser?.idiomaSeleccionado == "English" }
+    
     @Environment(\.modelContext) private var modelContext // Para poder borrar Recetas
     // Estados para las Recetas
     @State private var newRecetaDate: Date = Date()
@@ -33,11 +36,11 @@ struct BotiquinView: View {
         error = nil // Limpiar Error
         
         guard let data = newRecetaImageData else { // Validar que haya una imagen
-            error = "Por favor, sube una imagen de la receta."
+            error = isEnglish ? "Please upload an image of the prescription." : "Por favor, sube una imagen de la receta."
             return
         }
         guard let user = currentUser else { // Obtener el Usuario
-            error = "No se pudo encontrar el usuario."
+            error = isEnglish ? "User not found." : "No se pudo encontrar el usuario."
             return
         }
         let newReceta = RecetaMedica(fechaSubida: newRecetaDate, imagenRecetaData: data)
@@ -98,7 +101,8 @@ struct BotiquinView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Label("Botiquín de \(currentUser?.nombre ?? "Usuario")", systemImage: "cross.case")
+                    let userName = currentUser?.nombre ?? (isEnglish ? "User" : "Usuario")
+                    Label(isEnglish ? "First Aid Kit of \(userName)" : "Botiquín de \(userName)", systemImage: "cross.case")
                         .font(.title3.weight(.semibold))
                     Spacer()
                     HStack(spacing: 14) {
@@ -117,7 +121,7 @@ struct BotiquinView: View {
                             
                             // Card: Agregar Receta Médica
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Agregar Receta Médica")
+                                Text(isEnglish ? "Add Medical Prescription" : "Agregar Receta Médica")
                                     .font(.headline).fontWeight(.semibold)
                                 
                                 // Botón para subir Receta (PhotosPicker)
@@ -130,7 +134,7 @@ struct BotiquinView: View {
                                                 .frame(height: 100)
                                                 .clipped()
                                         } else {
-                                            Text("Subir Receta")
+                                            Text(isEnglish ? "Upload Prescription" : "Subir Receta")
                                                 .foregroundStyle(.secondary)
                                             Spacer()
                                             Image(systemName: "arrow.up.circle")
@@ -143,7 +147,7 @@ struct BotiquinView: View {
                                 }
                                 
                                 // Selector de Fecha
-                                DatePicker("Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
+                                DatePicker(isEnglish ? "Date" : "Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
                                 
                                 // Mostrar Error si hay
                                 if let error = error {
@@ -152,7 +156,7 @@ struct BotiquinView: View {
                                         .foregroundColor(.red)
                                 }
                                 
-                                Button("Agregar", action: saveReceta)
+                                Button(isEnglish ? "Add" : "Agregar", action: saveReceta)
                                     .buttonStyle(.borderedProminent)
                                     .frame(maxWidth: .infinity)
                             }
@@ -160,19 +164,19 @@ struct BotiquinView: View {
                             
                             // Card: Mis Recetas Guardadas
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Mis Recetas Guardadas")
+                                Text(isEnglish ? "My Saved Prescriptions" : "Mis Recetas Guardadas")
                                     .font(.headline).fontWeight(.semibold)
                                 
                                 if !sortedRecetas.isEmpty {
                                     ForEach(sortedRecetas, id: \.id) { receta in
                                         // Usamos la nueva vista 'RecetaCardView'
-                                        RecetaCardView(receta: receta, onDelete: {
+                                        RecetaCardView(receta: receta, isEnglish: isEnglish, onDelete: {
                                             deleteReceta(receta: receta)
                                         })
                                         .transition(.opacity.combined(with: .scale))
                                     }
                                 } else {
-                                    Text(currentUser?.recetas.isEmpty ?? true ? "Aún no tienes Recetas guardadas." : "...")
+                                    Text(currentUser?.recetas.isEmpty ?? true ? (isEnglish ? "You don't have saved prescriptions yet." : "Aún no tienes Recetas guardadas.") : "...")
                                         .foregroundStyle(.secondary)
                                         .frame(maxWidth: .infinity, alignment: .center)
                                         .padding()
@@ -188,10 +192,11 @@ struct BotiquinView: View {
                     .background(Color(.systemGroupedBackground))
                 }
                 
+                // Alertas (Toasts)
                 VStack(spacing: 8) {
                     // Mensaje de Confirmación
                     if showSaveConfirmation {
-                        Text("¡Receta guardada con éxito!")
+                        Text(isEnglish ? "Prescription saved successfully!" : "¡Receta guardada con éxito!")
                             .font(.caption.weight(.semibold))
                             .padding(12)
                             .frame(maxWidth: .infinity)
@@ -203,11 +208,11 @@ struct BotiquinView: View {
                     }
                     if showDeleteConfirmation {
                         HStack{
-                            Text("Receta eliminada.")
+                            Text(isEnglish ? "Prescription deleted." : "Receta eliminada.")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.red)
                             Spacer()
-                            Button("Deshacer") {
+                            Button(isEnglish ? "Undo" : "Deshacer") {
                                 undoDelete()
                             }
                             .font(.caption.weight(.bold))
@@ -231,7 +236,7 @@ struct BotiquinView: View {
             .background(Color(.systemGroupedBackground))
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
-                
+            
             .photosPicker(isPresented: $showPhotoGallery, selection: $selectedPhotoItem, matching: .images)
             .onChange(of: selectedPhotoItem) {_, newItem in
                 Task {
@@ -246,15 +251,16 @@ struct BotiquinView: View {
         }
     }
 }
-    
+
 struct RecetaCardView: View {
     let receta: RecetaMedica
+    var isEnglish: Bool
     let onDelete: () -> Void
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading) {
-                InfoRow("Fecha Subida: ", receta.fechaSubida.formatted(date: .long, time: .omitted))
+                InfoRow(isEnglish ? "Date Uploaded: " : "Fecha Subida: ", receta.fechaSubida.formatted(date: .long, time: .omitted))
                 if let data = receta.imagenRecetaData, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
