@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var telefono: String = ""
     @State private var contactoEmergencia: String = ""
     @State private var idiomaSeleccionado: String = "Español" // Por defecto
+    @State private var isAdultConfirmed: Bool = false
     
     // Errores por campo
     @State private var nombreError: String? = nil
@@ -28,6 +29,7 @@ struct ContentView: View {
     @State private var tipoSangreError: String? = nil
     @State private var diagnosticoError: String? = nil
     @State private var alergiasError: String? = nil
+    @State private var ageError: String? = nil
     
     // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
     @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
@@ -45,6 +47,7 @@ struct ContentView: View {
         apellidosError = nil
         telefonoError = nil
         contactoError = nil
+        ageError = nil
     }
     
     func validateForm() -> Bool {
@@ -68,6 +71,10 @@ struct ContentView: View {
         if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) { // Validar contacto de Emergencia
             contactoError = "El contacto de emergencia debe tener 10 dígitos válidos."
             focusedField = .emergencia
+            return false
+        }
+        if !isAdultConfirmed {
+            ageError = "Debes confirmar este campo para continuar."
             return false
         }
         return true
@@ -207,6 +214,32 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
                 
+                VStack(alignment: .leading, spacing: 4) {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            isAdultConfirmed.toggle()
+                        }
+                    }) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Image(systemName: isAdultConfirmed ? "checkmark.square.fill" : "square")
+                                .font(.title3)
+                                .foregroundColor(isAdultConfirmed ? .blue : .gray)
+                            Text("Soy mayor de edad o utilizo la aplicación bajo la supervición de un tutor.")
+                                .font(.footnote)
+                                .foregroundColor(.primary)
+                                .multilineTextAlignment(.leading)
+                        }
+                    }
+                    if let error = ageError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 34)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 12)
+                
                 // Navegar a la segunda pantalla (mockup geolocalización)
                 Button {
                     if validateForm() { // Validar al presionar el botón
@@ -217,7 +250,7 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)
-                        .background(Color.blue)
+                        .background(isAdultConfirmed ? Color.blue : Color.gray)
                         .cornerRadius(8)
                 }
                 .padding(.horizontal)
