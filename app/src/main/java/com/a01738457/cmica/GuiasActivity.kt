@@ -52,7 +52,6 @@ class GuiasActivity : ComponentActivity() {
 @Composable
 fun GuiasScreen() {
     var showCMICAInfo by remember { mutableStateOf(false) }
-    // TODO: Obtener el idioma del usuario desde tu sistema de base de datos/preferencias
     var isEnglish by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -90,12 +89,9 @@ fun GuiasScreen() {
                         contentDescription = "Notificaciones",
                         modifier = Modifier.size(24.dp)
                     )
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_globe),
-                        contentDescription = "Idioma",
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clickable { isEnglish = !isEnglish }
+                    LanguageDropdown(
+                        isEnglish = isEnglish,
+                        onLanguageChange = { newValue -> isEnglish = newValue }
                     )
                 }
             }
@@ -230,6 +226,48 @@ fun GuiasScreen() {
             isEnglish = isEnglish,
             onDismiss = { showCMICAInfo = false }
         )
+    }
+}
+
+@Composable
+fun LanguageDropdown(
+    isEnglish: Boolean,
+    onLanguageChange: (Boolean) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_globe),
+            contentDescription = if (isEnglish) "Language" else "Idioma",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { expanded = true }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text("Español")
+                },
+                onClick = {
+                    onLanguageChange(false)
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = {
+                    Text("English")
+                },
+                onClick = {
+                    onLanguageChange(true)
+                    expanded = false
+                }
+            )
+        }
     }
 }
 
