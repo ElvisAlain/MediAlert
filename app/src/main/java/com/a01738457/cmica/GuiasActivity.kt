@@ -63,7 +63,6 @@ fun GuiasScreen() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            // HEADER
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,14 +95,12 @@ fun GuiasScreen() {
                 }
             }
 
-            // CONTENIDO PRINCIPAL
             Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Botón Conócenos (CMICA)
                 Button(
                     onClick = {
                         showCMICAInfo = true
@@ -131,7 +128,6 @@ fun GuiasScreen() {
                     )
                 }
 
-                // Título Principal
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -150,7 +146,6 @@ fun GuiasScreen() {
                     )
                 }
 
-                // 1. Definición
                 InfoCard(
                     title = if (isEnglish) "1. What is Anaphylaxis?" else "1. ¿Qué es la Anafilaxia?",
                     imageRes = R.drawable.guias_anafilexia,
@@ -161,7 +156,6 @@ fun GuiasScreen() {
                     )
                 )
 
-                // 2. Causas
                 InfoCard(
                     title = if (isEnglish) "2. Most frequent causes" else "2. Causas más frecuentes",
                     iconRes = R.drawable.ic_exclamation_triangle,
@@ -173,10 +167,8 @@ fun GuiasScreen() {
                     )
                 )
 
-                // 3. Signos y Síntomas
                 SignsAndSymptomsCard(isEnglish = isEnglish)
 
-                // 4. Qué hacer
                 InfoCard(
                     title = if (isEnglish) "4. What to do if I suffer anaphylaxis?" else "4. ¿Qué hacer si sufro anafilaxia?",
                     iconRes = R.drawable.ic_person_running,
@@ -188,7 +180,6 @@ fun GuiasScreen() {
                     )
                 )
 
-                // 5. Retirada del Alérgeno
                 InfoCard(
                     title = if (isEnglish) "5. Allergen Withdrawal" else "5. Retirada del Alérgeno",
                     imageRes = R.drawable.guias_retirado,
@@ -200,7 +191,6 @@ fun GuiasScreen() {
                     )
                 )
 
-                // 6. Adrenalina
                 InfoCard(
                     title = if (isEnglish) "6. Apply Adrenaline" else "6. Aplicar Adrenalina",
                     imageRes = R.drawable.guias_aplicacion,
@@ -212,7 +202,6 @@ fun GuiasScreen() {
                     )
                 )
 
-                // 7. Prevención
                 PreventionCard(isEnglish = isEnglish)
 
                 Spacer(Modifier.height(16.dp))
@@ -220,7 +209,6 @@ fun GuiasScreen() {
         }
     }
 
-    // Modal de CMICA
     if (showCMICAInfo) {
         CMICAInfoDialog(
             isEnglish = isEnglish,
@@ -287,7 +275,6 @@ fun InfoCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Título con imagen/icono
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -331,7 +318,6 @@ fun InfoCard(
 
             Spacer(Modifier.height(8.dp))
 
-            // Bullets
             bullets.forEach { bullet ->
                 Row(
                     modifier = Modifier.padding(vertical = 4.dp),
@@ -366,7 +352,6 @@ fun SignsAndSymptomsCard(isEnglish: Boolean) {
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Título
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -400,7 +385,6 @@ fun SignsAndSymptomsCard(isEnglish: Boolean) {
 
             Spacer(Modifier.height(8.dp))
 
-            // Síntomas por categoría
             SymptomCategory(
                 category = if (isEnglish) "Skin:" else "Piel:",
                 description = if (isEnglish) " Red itchy hives, swelling and/or itching in palms of hands, soles of feet." else " Ronchas rojas que pican, hinchazón y/o picor en palmas de las manos, plantas de los pies."
@@ -457,7 +441,6 @@ fun PreventionCard(isEnglish: Boolean) {
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Título
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -491,7 +474,6 @@ fun PreventionCard(isEnglish: Boolean) {
 
             Spacer(Modifier.height(8.dp))
 
-            // Texto introductorio
             Text(
                 text = if (isEnglish) "There is no diet or preventive study for the first event. To prevent recurrence:" else "No existe dieta o estudio preventivo para el primer evento. Para prevenir que suceda nuevamente:",
                 fontSize = 14.sp,
@@ -500,7 +482,6 @@ fun PreventionCard(isEnglish: Boolean) {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Bullets
             val bullets = listOf(
                 if (isEnglish) "Attend assessment by Allergology." else "Acudir a valoración por Alergología.",
                 if (isEnglish) "Perform relevant allergological studies indicated by the specialist." else "Hacer los estudios alergológicos pertinentes indicados por el especialista.",
@@ -670,7 +651,6 @@ fun BottomTabBar() {
                 }
         )
 
-        // SOS Button
         Box(
             modifier = Modifier
                 .size(56.dp)
@@ -678,7 +658,6 @@ fun BottomTabBar() {
                 .background(Color(0xFFFF5252))
                 .clickable {
                     // TODO: Implementar funcionalidad SOS
-                    // Por ahora puedes dirigir a una activity específica si existe
                 },
             contentAlignment = Alignment.Center
         ) {
