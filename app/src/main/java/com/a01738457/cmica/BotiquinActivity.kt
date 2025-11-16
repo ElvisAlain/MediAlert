@@ -55,7 +55,6 @@ class BotiquinActivity : ComponentActivity() {
     }
 }
 
-// Clase de datos para Receta
 data class RecetaMedica(
     val id: String = UUID.randomUUID().toString(),
     val fechaSubida: Date,
@@ -68,25 +67,20 @@ fun BotiquinScreen() {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Estados
     var isEnglish by remember { mutableStateOf(false) }
     var userName by remember { mutableStateOf("Camila") }
 
-    // Estados para nueva receta
     var newRecetaDate by remember { mutableStateOf(Calendar.getInstance()) }
     var newRecetaImageUri by remember { mutableStateOf<Uri?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Estados para confirmaciones
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var recetaParaBorrar by remember { mutableStateOf<RecetaMedica?>(null) }
 
-    // Lista de recetas guardadas
     var recetas by remember { mutableStateOf(listOf<RecetaMedica>()) }
 
-    // Launcher para galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -94,7 +88,6 @@ fun BotiquinScreen() {
         error = null
     }
 
-    // Función para guardar receta
     fun saveReceta() {
         error = null
 
@@ -113,11 +106,9 @@ fun BotiquinScreen() {
 
         recetas = recetas + newReceta
 
-        // Limpiar campos
         newRecetaDate = Calendar.getInstance()
         newRecetaImageUri = null
 
-        // Mostrar confirmación
         showSaveConfirmation = true
         coroutineScope.launch {
             delay(2000)
@@ -125,14 +116,12 @@ fun BotiquinScreen() {
         }
     }
 
-    // Función para borrar receta con deshacer
     fun deleteReceta(receta: RecetaMedica) {
         showSaveConfirmation = false
         recetaParaBorrar = receta
         recetas = recetas.filter { it.id != receta.id }
         showDeleteConfirmation = true
 
-        // Timer de 3 segundos para borrar definitivamente
         coroutineScope.launch {
             delay(3000)
             if (recetaParaBorrar?.id == receta.id) {
@@ -142,7 +131,6 @@ fun BotiquinScreen() {
         }
     }
 
-    // Función para deshacer borrado
     fun undoDelete() {
         recetaParaBorrar?.let { receta ->
             recetas = recetas + receta
@@ -151,7 +139,6 @@ fun BotiquinScreen() {
         showDeleteConfirmation = false
     }
 
-    // Recetas ordenadas por fecha
     val sortedRecetas = recetas.sortedByDescending { it.fechaSubida }
 
     Scaffold(
@@ -164,7 +151,6 @@ fun BotiquinScreen() {
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Header
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,7 +187,6 @@ fun BotiquinScreen() {
                     }
                 }
 
-                // Contenido principal
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -209,7 +194,6 @@ fun BotiquinScreen() {
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // Card: Agregar Receta Médica
                     BotiquinCard {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
@@ -218,7 +202,6 @@ fun BotiquinScreen() {
                                 fontWeight = FontWeight.SemiBold
                             )
 
-                            // Botón para subir imagen
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -257,14 +240,12 @@ fun BotiquinScreen() {
                                 }
                             }
 
-                            // Selector de fecha
                             DateSelectorBotiquin(
                                 label = if (isEnglish) "Date" else "Fecha",
                                 date = newRecetaDate,
                                 onClick = { showDatePicker = true }
                             )
 
-                            // Mostrar error si hay
                             error?.let {
                                 Text(
                                     text = it,
@@ -273,7 +254,6 @@ fun BotiquinScreen() {
                                 )
                             }
 
-                            // Botón Agregar
                             Button(
                                 onClick = { saveReceta() },
                                 modifier = Modifier.fillMaxWidth(),
@@ -289,7 +269,6 @@ fun BotiquinScreen() {
                         }
                     }
 
-                    // Card: Mis Recetas Guardadas
                     BotiquinCard {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(
@@ -324,12 +303,10 @@ fun BotiquinScreen() {
                     }
                 }
 
-                // Alertas (Toasts)
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Confirmación de guardado
                     AnimatedVisibility(
                         visible = showSaveConfirmation,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
@@ -357,7 +334,6 @@ fun BotiquinScreen() {
                         }
                     }
 
-                    // Confirmación de borrado con deshacer
                     AnimatedVisibility(
                         visible = showDeleteConfirmation,
                         enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
@@ -402,7 +378,6 @@ fun BotiquinScreen() {
         }
     }
 
-    // Date Picker Dialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = newRecetaDate.timeInMillis
@@ -447,7 +422,6 @@ fun RecetaCardView(
                 .padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = 40.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Fecha
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -464,7 +438,6 @@ fun RecetaCardView(
                 )
             }
 
-            // Imagen
             if (receta.imagenUri != null) {
                 AsyncImage(
                     model = receta.imagenUri,
@@ -478,7 +451,6 @@ fun RecetaCardView(
             }
         }
 
-        // Botón de borrar
         IconButton(
             onClick = onDelete,
             modifier = Modifier
