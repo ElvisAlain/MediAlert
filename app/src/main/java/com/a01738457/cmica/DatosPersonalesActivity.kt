@@ -62,10 +62,12 @@ class DatosPersonalesActivity : ComponentActivity() {
 fun DatosPersonalesScreen() {
     val context = LocalContext.current
 
+    // Estados para edición
     var isEditing by remember { mutableStateOf(false) }
     var showSaveConfirmation by remember { mutableStateOf(false) }
     var isEnglish by remember { mutableStateOf(false) }
 
+    // Estados de datos
     var nombre by remember { mutableStateOf("Camila") }
     var apellidos by remember { mutableStateOf("Juárez") }
     var telefono by remember { mutableStateOf("2354687958") }
@@ -79,6 +81,7 @@ fun DatosPersonalesScreen() {
     var alergias by remember { mutableStateOf("Polvo, polen") }
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Estados de errores
     var nombreError by remember { mutableStateOf<String?>(null) }
     var apellidosError by remember { mutableStateOf<String?>(null) }
     var telefonoError by remember { mutableStateOf<String?>(null) }
@@ -90,14 +93,17 @@ fun DatosPersonalesScreen() {
     var diagnosticoError by remember { mutableStateOf<String?>(null) }
     var alergiasError by remember { mutableStateOf<String?>(null) }
 
+    // Mostrar date picker
     var showDatePicker by remember { mutableStateOf(false) }
 
+    // Launcher para galería
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         profileImageUri = uri
     }
 
+    // Función para limpiar errores
     fun clearErrors() {
         nombreError = null
         apellidosError = null
@@ -111,6 +117,7 @@ fun DatosPersonalesScreen() {
         alergiasError = null
     }
 
+    // Función para calcular edad
     fun calculateAge(birthDate: Calendar): Int {
         val today = Calendar.getInstance()
         var age = today.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR)
@@ -120,6 +127,7 @@ fun DatosPersonalesScreen() {
         return age
     }
 
+    // Función de validación
     fun validateAndSave(): Boolean {
         clearErrors()
         var isValid = true
@@ -197,7 +205,8 @@ fun DatosPersonalesScreen() {
             isEditing = false
             showSaveConfirmation = true
 
-            kotlinx.coroutines.GlobalScope.launch {
+            // Ocultar confirmación después de 2 segundos
+            kotlinx.coroutines.GlobalScope.launch{
                 kotlinx.coroutines.delay(2000)
                 showSaveConfirmation = false
             }
@@ -215,6 +224,7 @@ fun DatosPersonalesScreen() {
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,6 +261,7 @@ fun DatosPersonalesScreen() {
                 }
             }
 
+            // Info Usuario con foto
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -338,6 +349,7 @@ fun DatosPersonalesScreen() {
                 }
             }
 
+            // Lista de chips con scroll
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -453,6 +465,7 @@ fun DatosPersonalesScreen() {
                 )
             }
 
+            // Confirmación de guardado
             AnimatedVisibility(
                 visible = showSaveConfirmation,
                 enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
@@ -480,6 +493,7 @@ fun DatosPersonalesScreen() {
         }
     }
 
+    // Date Picker Dialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = fechaNacimiento.timeInMillis
