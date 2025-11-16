@@ -1,36 +1,43 @@
 package com.a01738457.cmica
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.a01738457.cmica.ui.theme.CmicaTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 class NotificacionesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             CmicaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     NotificacionesScreen()
                 }
@@ -39,125 +46,196 @@ class NotificacionesActivity : ComponentActivity() {
     }
 }
 
+enum class TipoAccion {
+    PROFILE_UPDATE,
+    SOS_CALL
+}
+
+data class HistorialAcciones(
+    val id: String = UUID.randomUUID().toString(),
+    val tipo_accion: TipoAccion,
+    val detalle: String,
+    val fecha_hora: Date = Date(),
+    var leida: Boolean = false
+)
+
 @Composable
 fun NotificacionesScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Encabezado
-        NotificacionesHeader()
+    val context = LocalContext.current
 
-        // Lista de tarjetas de notificación
-        LazyColumn(
+    // Estados
+    var isEnglish by remember { mutableStateOf(false) }
+    var userName by remember { mutableStateOf("Camila") }
+
+    var notificaciones by remember {
+        mutableStateOf(
+            listOf(
+                HistorialAcciones(
+                    tipo_accion = TipoAccion.PROFILE_UPDATE,
+                    detalle = "No olvides llenar los campos de Datos Personales, tu información es muy importante.",
+                    fecha_hora = Date(),
+                    leida = false
+                ),
+                HistorialAcciones(
+                    tipo_accion = TipoAccion.SOS_CALL,
+                    detalle = "Has llamado al 911, se ha mandado mensaje a tu contacto de emergencia.",
+                    fecha_hora = Calendar.getInstance().apply { add(Calendar.HOUR, -2) }.time,
+                    leida = false
+                )
+            )
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        notificaciones = notificaciones.map { it.copy(leida = true) }
+    }
+
+    val sortedNotificaciones = notificaciones.sortedByDescending { it.fecha_hora }
+
+    Scaffold(
+        bottomBar = { BottomTabBarNotificaciones() }
+    ) { innerPadding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 8.dp)
+                .padding(innerPadding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            item {
-                NotiCard(
-                    titulo = "¡Tu medicamento está por caducar!",
-                    detalle = "La fecha de caducidad de “_medicamento_” es: “00/00/0000” → 1 semana antes",
-                    trailing = {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_calendar_filled),
-                            contentDescription = "Ícono de calendario",
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_bell_filled),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = if (isEnglish) "Notifications" else "Notificaciones",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(Modifier.weight(1f))
+                LanguageDropdownNotificaciones(
+                    isEnglish = isEnglish,
+                    onLanguageChange = { isEnglish = it }
                 )
             }
-            item {
-                NotiCard(
-                    titulo = "¡Completa tus datos!",
-                    detalle = "No olvides llenar los campos de Datos Personales, tu información es muy importante.\n→ Únicamente si te falta llenar información",
-                    trailing = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_info_circle),
-                            contentDescription = "Ícono de información",
-                            modifier = Modifier.size(40.dp),
-                            tint = Color.Gray
-                        )
-                    }
-                )
-            }
-            item {
-                NotiCard(
-                    titulo = "Botón SOS activado",
-                    detalle = "Has llamado al 911, se ha mandado mensaje a tu contacto de emergencia → cuando se presione el botón SOS",
-                    trailing = {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_phone_filled),
-                            contentDescription = "Ícono de llamada SOS",
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                )
-            }
-            item {
-                NotiCard(
-                    titulo = "¡Es momento de tomar tu medicamento!",
-                    detalle = "No olvides tomar “_dosis_” de tu medicamento: “_medicamento_”.",
-                    trailing = {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_pills_filled),
-                            contentDescription = "Ícono de medicamento",
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                )
-            }
-        }
 
-        // Barra Inferior de Navegación
-        NotificacionesBottomBar()
-    }
-}
-
-@Composable
-fun NotificacionesHeader() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_bell_filled),
-            contentDescription = "Notificaciones",
-            modifier = Modifier.size(24.dp)
-        )
-        Text(
-            text = "Notificaciones",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 8.dp)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_cross_case),
-                contentDescription = "Cross Case",
-                modifier = Modifier.size(24.dp)
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.ic_globe),
-                contentDescription = "Globe",
-                modifier = Modifier.size(24.dp)
-            )
+            if (sortedNotificaciones.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (isEnglish)
+                            "You have no new notifications."
+                        else
+                            "No tienes notificaciones nuevas.",
+                        color = Color.Gray,
+                        fontSize = 16.sp
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    items(sortedNotificaciones) { notificacion ->
+                        NotiCardView(
+                            notificacion = notificacion,
+                            isEnglish = isEnglish
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun NotiCard(titulo: String, detalle: String, trailing: @Composable () -> Unit) {
+fun NotiCardView(
+    notificacion: HistorialAcciones,
+    isEnglish: Boolean
+) {
+    val (titulo, trailing) = when (notificacion.tipo_accion) {
+        TipoAccion.PROFILE_UPDATE -> {
+            val title = if (isEnglish) "Complete Your Data!" else "¡Completa Tus Datos!"
+            val icon: @Composable () -> Unit = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_info_circle),
+                    contentDescription = "Info",
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.Gray
+                )
+            }
+            title to icon
+        }
+        TipoAccion.SOS_CALL -> {
+            val title = if (isEnglish) "SOS Button Activated" else "Botón SOS Activado"
+            val icon: @Composable () -> Unit = {
+                Box(
+                    modifier = Modifier.size(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_phone_radiowaves),
+                        contentDescription = "SOS",
+                        modifier = Modifier.size(40.dp),
+                        tint = Color(0xFF9C27B0) // Purple
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .offset(x = 14.dp, y = (-12).dp)
+                            .clip(CircleShape)
+                            .background(Color.Red),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "911",
+                            color = Color.White,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+            title to icon
+        }
+    }
+
+    NotiCard(
+        titulo = titulo,
+        detalle = notificacion.detalle,
+        trailing = trailing
+    )
+}
+
+@Composable
+fun NotiCard(
+    titulo: String,
+    detalle: String,
+    trailing: @Composable () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(4.dp, RoundedCornerShape(18.dp))
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(18.dp),
+                clip = false
+            )
             .background(Color(0xFFE0E0E0), RoundedCornerShape(18.dp))
             .padding(14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -170,12 +248,14 @@ fun NotiCard(titulo: String, detalle: String, trailing: @Composable () -> Unit) 
             Text(
                 text = titulo,
                 fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                color = Color.Black
             )
             Text(
                 text = detalle,
                 fontSize = 14.sp,
-                color = Color.Gray
+                color = Color.Gray,
+                lineHeight = 20.sp
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
@@ -184,50 +264,143 @@ fun NotiCard(titulo: String, detalle: String, trailing: @Composable () -> Unit) 
 }
 
 @Composable
-fun NotificacionesBottomBar() {
+fun LanguageDropdownNotificaciones(
+    isEnglish: Boolean,
+    onLanguageChange: (Boolean) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_globe),
+            contentDescription = if (isEnglish) "Language" else "Idioma",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { expanded = true }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Español") },
+                onClick = {
+                    onLanguageChange(false)
+                    expanded = false
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("English") },
+                onClick = {
+                    onLanguageChange(true)
+                    expanded = false
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun BottomTabBarNotificaciones() {
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 10.dp)
-            .shadow(4.dp),
-        horizontalArrangement = Arrangement.SpaceAround,
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_house_filled),
-            contentDescription = "Inicio",
-            modifier = Modifier.size(32.dp)
+            contentDescription = "Home",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable {
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                }
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_bell_filled),
             contentDescription = "Notificaciones",
-            modifier = Modifier.size(32.dp)
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
         )
+
         Box(
             modifier = Modifier
-                .size(60.dp)
-                .shadow(4.dp, CircleShape)
-                .background(Color.White, CircleShape),
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFFF5252))
+                .clickable { /* TODO: SOS */ },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "SOS",
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFFE53935)
+                color = Color.White,
+                fontSize = 16.sp
             )
         }
+
         Icon(
             painter = painterResource(id = R.drawable.ic_book_filled),
-            contentDescription = "Manual",
-            modifier = Modifier.size(32.dp)
+            contentDescription = "Guía",
+            modifier = Modifier
+                .size(24.dp)
+                .clickable {
+                    context.startActivity(Intent(context, GuiasActivity::class.java))
+                }
         )
         Icon(
             painter = painterResource(id = R.drawable.ic_person_circle_filled),
             contentDescription = "Perfil",
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier
+                .size(24.dp)
+                .clickable {
+                    context.startActivity(Intent(context, DatosPersonalesActivity::class.java))
+                }
         )
+    }
+}
+
+@Composable
+fun NotificacionesBellView(
+    notificacionesNoLeidas: Int,
+    onClick: () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .size(24.dp)
+            .clickable { onClick() }
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_bell_filled),
+            contentDescription = "Notificaciones",
+            modifier = Modifier
+                .size(24.dp)
+                .padding(top = 5.dp, end = 5.dp)
+        )
+
+        if (notificacionesNoLeidas > 0) {
+            Box(
+                modifier = Modifier
+                    .size(18.dp)
+                    .align(Alignment.TopEnd)
+                    .offset(x = 5.dp, y = (-5).dp)
+                    .clip(CircleShape)
+                    .background(Color.Red),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = notificacionesNoLeidas.toString(),
+                    color = Color.White,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
