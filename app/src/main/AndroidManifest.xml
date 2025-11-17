@@ -12,6 +12,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Cmica">
         <activity
+            android:name=".SOSDragButton"
+            android:exported="false"
+            android:label="@string/title_activity_sosdrag_button"
+            android:theme="@style/Theme.Cmica" />
+        <activity
             android:name=".BotiquinActivity"
             android:exported="false"
             android:label="@string/title_activity_botiquin"

@@ -5,4 +5,5 @@
     <string name="title_activity_notificaciones">NotificacionesActivity</string>
     <string name="title_activity_botiquin">BotiquinActivity</string>
     <string name="title_activity_guias">GuiasActivity</string>
+    <string name="title_activity_sosdrag_button">SOSDragButton</string>
 </resources>
