@@ -102,8 +102,14 @@ struct BotiquinView: View {
                 // Header
                 HStack {
                     let userName = currentUser?.nombre ?? (isEnglish ? "User" : "Usuario")
-                    Label(isEnglish ? "First Aid Kit of \(userName)" : "Botiquín de \(userName)", systemImage: "cross.case")
-                        .font(.title3.weight(.semibold))
+                    Label {
+                        Text(isEnglish ? "First Aid Kit of \(userName)" : "Botiquín de \(userName)")
+                    } icon: {
+                        Image(systemName: "cross.case")
+                            .foregroundStyle(Color.cmicaBlue)
+                    }
+                    .font(.title3.weight(.semibold))
+                    
                     Spacer()
                     HStack(spacing: 14) {
                         NotificacionesBellView()
@@ -123,6 +129,7 @@ struct BotiquinView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(isEnglish ? "Add Medical Prescription" : "Agregar Receta Médica")
                                     .font(.headline).fontWeight(.semibold)
+                                    .foregroundStyle(Color.cmicaBlue)
                                 
                                 // Botón para subir Receta (PhotosPicker)
                                 Button(action: { showPhotoGallery = true }) {
@@ -138,6 +145,8 @@ struct BotiquinView: View {
                                                 .foregroundStyle(.secondary)
                                             Spacer()
                                             Image(systemName: "arrow.up.circle")
+                                                .font(.title2)
+                                                .foregroundStyle(Color.cmicaBlue)
                                         }
                                     }
                                     .padding()
@@ -148,6 +157,7 @@ struct BotiquinView: View {
                                 
                                 // Selector de Fecha
                                 DatePicker(isEnglish ? "Date" : "Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
+                                    .tint(Color.cmicaBlue)
                                 
                                 // Mostrar Error si hay
                                 if let error = error {
@@ -158,6 +168,7 @@ struct BotiquinView: View {
                                 
                                 Button(isEnglish ? "Add" : "Agregar", action: saveReceta)
                                     .buttonStyle(.borderedProminent)
+                                    .tint(Color.cmicaBlue)
                                     .frame(maxWidth: .infinity)
                             }
                             .cardStyle()
@@ -166,10 +177,10 @@ struct BotiquinView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(isEnglish ? "My Saved Prescriptions" : "Mis Recetas Guardadas")
                                     .font(.headline).fontWeight(.semibold)
+                                    .foregroundStyle(Color.cmicaBlue)
                                 
                                 if !sortedRecetas.isEmpty {
                                     ForEach(sortedRecetas, id: \.id) { receta in
-                                        // Usamos la nueva vista 'RecetaCardView'
                                         RecetaCardView(receta: receta, isEnglish: isEnglish, onDelete: {
                                             deleteReceta(receta: receta)
                                         })

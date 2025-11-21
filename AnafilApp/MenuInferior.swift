@@ -14,28 +14,44 @@ struct MenuInferior: View {
         HStack(alignment: .center, spacing: 0) {
             // 1. Home
             Spacer()
-            NavigationLink { GeolocalizacionView() } label: {
+            if activeTab == "home" {
                 VStack(spacing: 4) {
                     Image(systemName: "house.fill")
                         .font(.title2)
                 }
-                .foregroundStyle(activeTab == "home" ? .blue : .gray)
-                .frame(width: 50) // Zona de toque
+                .foregroundStyle(Color.cmicaBlue)
+                .frame(width: 50)
+            } else {
+                NavigationLink { GeolocalizacionView() } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "house.fill")
+                            .font(.title2)
+                    }
+                    .foregroundStyle(.gray)
+                    .frame(width: 50)
+                }
             }
-            .disabled(activeTab == "home")
             
             Spacer()
             
             // 2. Botiquín
-            NavigationLink { BotiquinView() } label: {
+            if activeTab == "botiquin" {
                 VStack(spacing: 4) {
                     Image(systemName: "cross.case.fill")
                         .font(.title2)
                 }
-                .foregroundStyle(activeTab == "botiquin" ? .blue : .gray)
+                .foregroundStyle(Color.cmicaBlue)
                 .frame(width: 50)
+            } else {
+                NavigationLink { BotiquinView() } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "cross.case.fill")
+                            .font(.title2)
+                    }
+                    .foregroundStyle(.gray)
+                    .frame(width: 50)
+                }
             }
-            .disabled(activeTab == "botiquin")
             
             Spacer()
             
@@ -46,33 +62,49 @@ struct MenuInferior: View {
             Spacer()
             
             // 4. Guías
-            NavigationLink { GuiasView() } label: {
+            if activeTab == "guias" {
                 VStack(spacing: 4) {
                     Image(systemName: "book.fill")
                         .font(.title2)
                 }
-                .foregroundStyle(activeTab == "guias" ? .blue : .gray)
+                .foregroundStyle(Color.cmicaBlue)
                 .frame(width: 50)
+            } else {
+                NavigationLink { GuiasView() } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "book.fill")
+                            .font(.title2)
+                    }
+                    .foregroundStyle(.gray)
+                    .frame(width: 50)
+                }
             }
-            .disabled(activeTab == "guias")
             
             Spacer()
             
             // 5. Perfil
-            NavigationLink { DatosPersonalesView() } label: {
+            if activeTab == "perfil" {
                 VStack(spacing: 4) {
                     Image(systemName: "person.crop.circle.fill")
                         .font(.title2)
                 }
-                .foregroundStyle(activeTab == "perfil" ? .blue : .gray)
+                .foregroundStyle(Color.cmicaBlue)
                 .frame(width: 50)
+            } else {
+                NavigationLink { DatosPersonalesView() } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: "person.crop.circle.fill")
+                            .font(.title2)
+                    }
+                    .foregroundStyle(.gray)
+                    .frame(width: 50)
+                }
             }
-            .disabled(activeTab == "perfil")
             Spacer()
         }
         .padding(.top, 12)
         .padding(.bottom, 8)
         .background(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.05), radius: 2, y: -1) // Sombra sutil arriba
+        .shadow(color: .black.opacity(0.05), radius: 2, y: -1)
     }
 }

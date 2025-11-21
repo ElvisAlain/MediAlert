@@ -24,6 +24,7 @@ struct GeolocalizacionView: View {
             HStack {
                 Text("AnafilApp")
                     .font(.title3).bold()
+                    .foregroundStyle(Color.cmicaBlue)
                 Spacer()
                 HStack(spacing: 14) {
                     NotificacionesBellView()
@@ -41,7 +42,7 @@ struct GeolocalizacionView: View {
                     // Tu posición
                     Annotation(isEnglish ? "Me" : "Yo", coordinate: locationManager.region.center) {
                         Image(systemName: "person.circle.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color.cmicaBlue)
                             .font(.title)
                             .background(Circle().fill(.white))
                             .clipShape(Circle())
@@ -63,6 +64,7 @@ struct GeolocalizacionView: View {
                     Image(systemName: "location.fill")
                         .padding(10)
                         .background(Color(.systemBackground))
+                        .foregroundStyle(Color.cmicaBlue)
                         .clipShape(Circle())
                         .shadow(radius: 4)
                 }
@@ -75,8 +77,8 @@ struct GeolocalizacionView: View {
             Text(isEnglish
                 ? "Disclaimer: Results are location-based suggestions. We are not responsible for service availability."
                 : "Aviso: Los resultados son sugerencias por ubicación. No nos hacemos responsables de la disponibilidad del servicio.")
-                .font(.caption2) // Letra pequeña
-                .foregroundColor(.red) // Color rojo
+                .font(.caption2)
+                .foregroundColor(.red)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
                 .padding(.bottom, 8)
@@ -87,6 +89,7 @@ struct GeolocalizacionView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(isEnglish ? "Nearest Hospitals" : "Hospitales más cercanos")
                     .font(.headline)
+                    .foregroundStyle(Color.cmicaBlue)
                     .padding(.horizontal)
                 
                 ScrollView {
@@ -118,7 +121,7 @@ struct GeolocalizacionView: View {
     }
 }
 
-// Componente de Fila Dinámico (Sin botón de ir)
+// Componente de Fila Dinámico
 struct HospitalRow: View {
     let item: MKMapItem
     var isEnglish: Bool
@@ -128,12 +131,12 @@ struct HospitalRow: View {
             // Icono de Hospital
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue.opacity(0.1))
+                    .fill(Color.cmicaBlue.opacity(0.1))
                     .frame(width: 60, height: 60)
                 
                 Image(systemName: "cross.case.fill")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color.cmicaBlue)
             }
             
             // Info del Hospital

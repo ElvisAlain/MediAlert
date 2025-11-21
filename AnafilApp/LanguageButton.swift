@@ -41,7 +41,7 @@ struct LanguageButton: View {
         } label: { // El ícono del globito que activa el menú
             Image (systemName: currentUser?.idiomaSeleccionado == "Español" ? "globe" : "globe.americas.fill")
                 .font(.title3)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.cmicaBlue)
         }
     }
     

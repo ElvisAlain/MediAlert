@@ -21,8 +21,15 @@ struct GuiasView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    Label(isEnglish ? "Guide" : "Guía", systemImage: "book.fill")
-                        .font(.title3.weight(.semibold))
+                    // Cambio de color al icono del libro
+                    Label {
+                        Text(isEnglish ? "Guide" : "Guía")
+                    } icon: {
+                        Image(systemName: "book.fill")
+                            .foregroundStyle(Color.cmicaBlue)
+                    }
+                    .font(.title3.weight(.semibold))
+                    
                     Spacer()
                     HStack(spacing: 14) {
                         NotificacionesBellView()
@@ -47,8 +54,8 @@ struct GuiasView: View {
                             }
                             .padding(.vertical, 8)
                             .padding(.horizontal, 16)
-                            .background(Color.blue.opacity(0.1))
-                            .foregroundColor(.blue)
+                            .background(Color.cmicaBlue.opacity(0.1))
+                            .foregroundColor(Color.cmicaBlue)
                             .clipShape(Capsule())
                         }
                         .padding(.top, 4)
@@ -56,9 +63,10 @@ struct GuiasView: View {
                         // Título Principal
                         HStack {
                             Image(systemName: "text.book.closed")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Color.cmicaBlue)
                             Text(isEnglish ? "General Anaphylaxis Information" : "Información General de Anafilaxia")
                                 .font(.title3.weight(.bold))
+                                .foregroundStyle(Color.primary)
                             Spacer()
                         }
                         .padding(.bottom, 4)
@@ -165,10 +173,9 @@ struct GuiasView: View {
             .background(Color(.systemGroupedBackground))
             .navigationBarBackButtonHidden(true)
             .toolbar(.hidden, for: .navigationBar)
-            // Popup de CMICA
             .sheet(isPresented: $showCMICAInfo) {
                 CMICAInfoView(isEnglish: isEnglish)
-                    .presentationDetents([.fraction(0.50)])
+                    .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
         }
@@ -181,37 +188,46 @@ struct CMICAInfoView: View {
     
     var body: some View {
         VStack(spacing: 20) {
+            // 1. Logo
             Image("cmica_logo")
                 .resizable()
                 .scaledToFit()
                 .frame(height: 80)
                 .padding(.top, 20)
             
+            // 2. Título
             Text("CMICA")
                 .font(.title.bold())
-            
-            Text(isEnglish ? "Mexican College of Clinical Immunology and Allergy A.C." : "Colegio Mexicano de Inmunología Clínica y Alergia A.C.")
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal)
+                .foregroundStyle(Color.cmicaBlue)
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(alignment: .top) {
-                        Text("•")
-                        Text(isEnglish ? "Founded in 1946, it is the body that groups all Medical Specialists in Allergy and Immunology in the country." : "Fue fundado en 1946 y es el organismo que agrupa a todos los Médicos Especialistas en Alergia e Inmunología del país.")
-                    }
-                    HStack(alignment: .top) {
-                        Text("•")
-                        Text(isEnglish ? "Its main function is to promote academic growth and continuing medical education for its members through the organization of update courses, national and international congresses, symposiums, and workshops." : "Su principal función es promover el crecimiento académico y la educación médica continua de sus miembros mediante la organización de cursos de actualización, congresos nacionales e internacionales, simposios y talleres.")
+                VStack(spacing: 24) {
+                    // 3. Texto descriptivo exacto
+                    Text(isEnglish
+                         ? "CMICA - Mexican College of Clinical Immunology and Allergy A.C.\n\nFounded in 1946, it is the organization that groups all Medical Specialists in Allergy and Immunology in the country. Its main function is to promote academic growth and continuing medical education."
+                         : "CMICA - Colegio Mexicano de Inmunología Clínica y Alergia A.C.\n\nFue fundado en 1946 y es el organismo que agrupa a todos los Médicos Especialistas en Alergia e Inmunología del país. Su principal función es promover el crecimiento académico y la educación médica continua.")
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.primary)
+                    
+                    // 4. Link al sitio web
+                    Link(destination: URL(string: "https://cmica.com.mx/")!) {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("cmica.com.mx")
+                                .fontWeight(.semibold)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.cmicaBlue.opacity(0.1))
+                        .foregroundColor(Color.cmicaBlue)
+                        .cornerRadius(10)
                     }
                 }
-                .font(.body)
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom, 20)
             }
         }
-        .padding(.bottom, 20)
     }
 }
 
@@ -246,7 +262,7 @@ private struct TitleWithThumb: View {
             Text(title)
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundColor(.blue)
+                .foregroundColor(Color.cmicaBlue)
             
             Spacer()
             
@@ -260,9 +276,9 @@ private struct TitleWithThumb: View {
                 } else if let iconName = iconSystemName {
                     Image(systemName: iconName)
                         .font(.system(size: 30))
-                        .foregroundColor(.blue.opacity(0.6))
+                        .foregroundColor(Color.cmicaBlue.opacity(0.6))
                         .frame(width: thumbSize, height: thumbSize)
-                        .background(Color.blue.opacity(0.1))
+                        .background(Color.cmicaBlue.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
             }
@@ -277,7 +293,7 @@ private func bullets(_ items: [String]) -> some View {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "circle.fill")
                     .font(.system(size: 6))
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(Color.cmicaBlue)
                     .padding(.top, 7)
                 Text(item)
                     .font(.subheadline)

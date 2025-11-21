@@ -31,18 +31,15 @@ struct ContentView: View {
     @State private var alergiasError: String? = nil
     @State private var ageError: String? = nil
     
-    // Bandera de primera vez y datos persistentes. La vista DatosPersonales se actualizará automáticamente cuando esta bandera cambie.
+    // Bandera de primera vez y datos persistentes
     @AppStorage("isFirstLaunch") var isFirstLaunch: Bool = true
-    // Acceso al Contexto de SwiftData para guardar datos
     @Environment(\.modelContext) private var modelContext
-    // Estados para el foco del teclado
     @FocusState private var focusedField: Field?
     
-    private enum Field: Hashable { // Controlar el foco entre campos
+    private enum Field: Hashable {
         case nombre, apellidos, telefono, emergencia
     }
     
-    // Computed property para saber si es inglés (facilita la lectura en la vista)
     private var isEnglish: Bool { idiomaSeleccionado == "English" }
     
     private func clearErrors() {
@@ -56,22 +53,22 @@ struct ContentView: View {
     func validateForm() -> Bool {
         clearErrors() // limpiar errores anteriores
         
-        if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar nombre
+        if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             nombreError = isEnglish ? "Name is missing." : "Falta el nombre."
             focusedField = .nombre
             return false
         }
-        if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { // Validar apellidos
+        if apellidos.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             apellidosError = isEnglish ? "Last name is missing." : "Faltan los apellidos."
             focusedField = .apellidos
             return false
         }
-        if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) { // Validar teléfono propio
+        if telefono.count != 10 || !telefono.allSatisfy({ $0.isNumber}) {
             telefonoError = isEnglish ? "Phone number must have 10 valid digits." : "El teléfono propio debe tener 10 dígitos válidos."
             focusedField = .telefono
             return false
         }
-        if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) { // Validar contacto de Emergencia
+        if contactoEmergencia.count != 10 || !contactoEmergencia.allSatisfy({ $0.isNumber}) {
             contactoError = isEnglish ? "Emergency contact must have 10 valid digits." : "El contacto de emergencia debe tener 10 dígitos válidos."
             focusedField = .emergencia
             return false
@@ -84,7 +81,6 @@ struct ContentView: View {
     }
     
     func saveAndNavigate() {
-        // Instancia del modelo Swift Data --> User
         let newUser = User(
             nombre: nombre,
             apellidos: apellidos,
@@ -99,7 +95,7 @@ struct ContentView: View {
             diagnostico: "N/A",
             alergias: "No especificada"
         )
-        if newUser.isProfileIncomplete() { // Añadir primera notificación cuando el perfil está incompleto
+        if newUser.isProfileIncomplete() {
             let msg = isEnglish ? "Don't forget to fill in the Personal Data fields, your information is very important." : "No olvides llenar los campos de Datos Personales, tu información es muy importante."
             let primeraNoti = HistorialAcciones (
                 tipo_accion: .profileUpdate,
@@ -108,7 +104,7 @@ struct ContentView: View {
             newUser.historialAcciones.append(primeraNoti)
         }
         modelContext.insert(newUser)
-        isFirstLaunch = false // Bandera
+        isFirstLaunch = false
     }
     
     var body: some View {
@@ -132,9 +128,11 @@ struct ContentView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "doc.text")
                         .font(.title3)
+                        .foregroundStyle(Color.cmicaBlue) // Icono azul
                     Text(isEnglish ? "Registration" : "Registro")
                         .font(.title3)
                         .fontWeight(.semibold)
+                        .foregroundStyle(Color.cmicaBlue) // Texto azul
                 }
                 .padding(.top, 16)
                 
@@ -198,7 +196,7 @@ struct ContentView: View {
                     VStack(spacing: 6) {
                         TextField(isEnglish ? "Phone (10 digits)" : "Teléfono (10 dígitos)", text: $telefono)
                             .textFieldStyle(.roundedBorder)
-                            .keyboardType(.numberPad) // Solo números
+                            .keyboardType(.numberPad)
                             .focused($focusedField, equals: .telefono)
                         if let error = telefonoError {
                             Text(error)
@@ -233,7 +231,8 @@ struct ContentView: View {
                         HStack(alignment: .top, spacing: 10) {
                             Image(systemName: isAdultConfirmed ? "checkmark.square.fill" : "square")
                                 .font(.title3)
-                                .foregroundColor(isAdultConfirmed ? .blue : .gray)
+                                // CAMBIO: Checkbox azul institucional
+                                .foregroundColor(isAdultConfirmed ? Color.cmicaBlue : .gray)
                             Text(isEnglish ? "I am of legal age or use the application under the supervision of a guardian." : "Soy mayor de edad o utilizo la aplicación bajo la supervisión de un tutor.")
                                 .font(.footnote)
                                 .foregroundColor(.primary)
@@ -252,7 +251,7 @@ struct ContentView: View {
                 
                 // Navegar a la segunda pantalla
                 Button {
-                    if validateForm() { // Validar al presionar el botón
+                    if validateForm() {
                         saveAndNavigate()
                     }
                 } label: {
@@ -260,7 +259,8 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .foregroundColor(.white)
-                        .background(isAdultConfirmed ? Color.blue : Color.gray)
+                        // CAMBIO: Fondo azul institucional si está confirmado
+                        .background(isAdultConfirmed ? Color.cmicaBlue : Color.gray)
                         .cornerRadius(8)
                 }
                 .padding(.horizontal)

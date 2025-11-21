@@ -11,8 +11,8 @@ import PhotosUI
 
 struct DatosPersonalesView: View {
     @State private var isEditing: Bool = false
-    @State private var showSaveConfirmation: Bool = false // Retro al Usuario
-    @Query(sort: \User.nombre) var users: [User] // Cargar Usuario
+    @State private var showSaveConfirmation: Bool = false
+    @Query(sort: \User.nombre) var users: [User]
     var currentUser: User? { users.first }
     
     // 1. Acceso a Idioma
@@ -44,10 +44,9 @@ struct DatosPersonalesView: View {
     @State private var alergiasError: String? = nil
     
     // Estados para la Foto de Perfil
-    @State private var profileImage: Image? // Mostrar en UI
-    @State private var profileImageData: Data? // Guardar en DB
+    @State private var profileImage: Image?
+    @State private var profileImageData: Data?
     @State private var selectedPhotoItem: PhotosPickerItem?
-    // Para Galería
     @State private var showPhotoGallery: Bool = false
     
     // Cargar los datos del modelo
@@ -74,7 +73,6 @@ struct DatosPersonalesView: View {
         }
     }
     
-    // Limpiar Errores
     private func clearErrors() {
         nombreError = nil
         apellidosError = nil
@@ -88,7 +86,6 @@ struct DatosPersonalesView: View {
         alergiasError = nil
     }
     
-    // Calcular Edad
     private func calculateAge(from date: Date) -> Int {
         let now = Date()
         let calendar = Calendar.current
@@ -96,9 +93,8 @@ struct DatosPersonalesView: View {
         return ageComponents.year ?? 0
     }
     
-    // Validar el 'Guardar' datos
     private func validateAndSave() {
-        clearErrors() // Limpiar errores antiguos
+        clearErrors()
         var isValid = true
         
         if nombre.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -133,8 +129,6 @@ struct DatosPersonalesView: View {
             pesoError = isEnglish ? "Weight must be greater than 0." : "El peso debe ser mayor a 0."
             isValid = false
         }
-        // Nota: Comparamos con el string en español porque es el valor por defecto en el modelo,
-        // pero si el usuario selecciona en inglés, se guardará el valor en inglés.
         if sexo == "No especificado" || sexo == "Unspecified" {
             sexoError = isEnglish ? "Select a sex." : "Selecciona un sexo."
             isValid = false
@@ -146,7 +140,6 @@ struct DatosPersonalesView: View {
         
         guard isValid else { return }
         
-        // Validaciones de longitud
         let maxNombre = 25
         let maxApellidos = 25
         let maxOtros = 40
@@ -174,7 +167,6 @@ struct DatosPersonalesView: View {
         
         guard isValid else { return }
         
-        // Guardar
         guard let user = currentUser else { return }
         
         user.nombre = nombre
@@ -203,6 +195,7 @@ struct DatosPersonalesView: View {
             HStack {
                 Label(isEnglish ? "Personal Data" : "Datos Personales", systemImage: "info.circle")
                     .font(.title3.weight(.semibold))
+                    .foregroundStyle(Color.cmicaBlue)
                 Spacer()
                 HStack(spacing: 14) {
                     NotificacionesBellView()
@@ -262,7 +255,7 @@ struct DatosPersonalesView: View {
                         .font(.callout.weight(.semibold))
                         .padding(.vertical, 6)
                         .padding(.horizontal, 10)
-                        .background(Color.blue)
+                        .background(Color.cmicaBlue)
                         .foregroundStyle(.white)
                         .clipShape(Capsule())
                 }
@@ -274,9 +267,7 @@ struct DatosPersonalesView: View {
             // Lista de chips
             ScrollView {
                 if currentUser != nil {
-                    // Opciones de Tipos de Sangre
                     let bloodTypes = ["N/A", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]
-                    // Opciones de sexo según idioma
                     let sexOptions = isEnglish ? ["Unspecified", "Male", "Female", "Other"] : ["No especificado","Hombre", "Mujer", "Otro"]
                     
                     VStack(spacing: 14) {
@@ -363,7 +354,7 @@ struct ChipRow: View {
                 HStack(spacing: 2) {
                     Text(titulo)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.blue.opacity(0.9))
+                        .foregroundStyle(Color.cmicaBlue.opacity(0.9))
                         .layoutPriority(1)
                     
                     if editable {
@@ -382,7 +373,7 @@ struct ChipRow: View {
             .padding(.vertical, 12)
             .background(
                 Capsule()
-                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .fill(editable ? Color.cmicaBlue.opacity(0.1) : Color(.systemGray5))
                     .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
             )
             if let error = error {
@@ -408,7 +399,7 @@ struct DoubleChipRow: View {
                 HStack(spacing: 2) {
                     Text(titulo)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.blue.opacity(0.9))
+                        .foregroundStyle(Color.cmicaBlue.opacity(0.9))
                     if editable {
                         TextField("", value: $value, format: .number.precision(.fractionLength(2)))
                             .textFieldStyle(.plain)
@@ -424,50 +415,7 @@ struct DoubleChipRow: View {
             .padding(.vertical, 12)
             .background(
                 Capsule()
-                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
-                    .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
-            )
-            if let error = error {
-                Text(error)
-                    .font(.caption)
-                    .foregroundColor(.red)
-                    .padding(.horizontal, 18)
-            }
-        }
-    }
-}
-
-// Chip para Números Int
-struct IntChipRow: View {
-    let titulo: String
-    @Binding var value: Int
-    var editable: Bool = false
-    var error: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                HStack(spacing: 2) {
-                    Text(titulo)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(Color.blue.opacity(0.9))
-                    
-                    if editable {
-                        TextField("", value: $value, format: .number)
-                            .textFieldStyle(.plain)
-                            .autocorrectionDisabled(true)
-                            .keyboardType(.numberPad) // Teclado numérico
-                    } else {
-                        Text(value, format: .number)
-                    }
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                Capsule()
-                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .fill(editable ? Color.cmicaBlue.opacity(0.1) : Color(.systemGray5))
                     .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
             )
             if let error = error {
@@ -494,7 +442,7 @@ struct PickerChipRow: View {
                 HStack(spacing: 2) {
                     Text(titulo)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.blue.opacity(0.9))
+                        .foregroundStyle(Color.cmicaBlue.opacity(0.9))
                     
                     if editable {
                         Picker(titulo, selection: $selection) {
@@ -515,7 +463,7 @@ struct PickerChipRow: View {
             .padding(.vertical, 10)
             .background(
                 Capsule()
-                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .fill(editable ? Color.cmicaBlue.opacity(0.1) : Color(.systemGray5))
                     .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
             )
             if let error = error {
@@ -541,7 +489,7 @@ struct DateChipRow: View {
                 HStack(spacing: 2) {
                     Text(titulo)
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.blue.opacity(0.9))
+                        .foregroundStyle(Color.cmicaBlue.opacity(0.9))
                     
                     if editable {
                         DatePicker(
@@ -551,7 +499,7 @@ struct DateChipRow: View {
                             displayedComponents: .date
                         )
                         .labelsHidden()
-                        .tint(.blue)
+                        .tint(Color.cmicaBlue) // DatePicker en azul institucional
                     } else {
                         Text(selection, style: .date)
                     }
@@ -562,7 +510,7 @@ struct DateChipRow: View {
             .padding(.vertical, 10)
             .background(
                 Capsule()
-                    .fill(editable ? Color.blue.opacity(0.1) : Color(.systemGray5))
+                    .fill(editable ? Color.cmicaBlue.opacity(0.1) : Color(.systemGray5))
                     .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
             )
             

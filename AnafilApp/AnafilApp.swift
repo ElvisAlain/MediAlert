@@ -8,11 +8,17 @@
 import SwiftUI
 import SwiftData
 
+// Color en toda la App
+extension Color {
+    static let cmicaBlue = Color(red: 0.0, green: 0.29, blue: 0.56) // Azul Institucional CMICA
+}
+
 @main
 struct AnafilApp: App {
     var body: some Scene {
         WindowGroup {
             AnafilAppRoot()
+                .tint(.cmicaBlue)
         }
         .modelContainer(for: User.self)
     }
