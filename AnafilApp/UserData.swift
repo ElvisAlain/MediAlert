@@ -7,13 +7,12 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
-
 final class User {
     var nombre: String
     var apellidos: String
-
     var idiomaSeleccionado: String
     var telefono: String
     var contactoEmergencia: String
@@ -24,22 +23,29 @@ final class User {
     var tipoSangre: String
     var diagnostico: String
     var alergias: String
+    
     @Attribute(.externalStorage)
-    var profileImageData: Data? // Foto de Perfil de Galeria
-    @Relationship(deleteRule: .cascade, inverse: \RecetaMedica.user) // 1 usuario : puede tener MUCHAS recetas | en cascada
+    var profileImageData: Data?
+    
+    @Relationship(deleteRule: .cascade, inverse: \RecetaMedica.user)
     var recetas: [RecetaMedica] = []
+    
     @Relationship(deleteRule: .cascade, inverse: \HistorialAcciones.user)
     var historialAcciones: [HistorialAcciones] = []
-    // Calcular Edad
+    
+    @Relationship(deleteRule: .cascade, inverse: \Adrenalina.user)
+    var adrenalinas: [Adrenalina] = []
+    
     var calculatedAge: Int {
         let now = Date()
         let calendar = Calendar.current
         let ageComponents = calendar.dateComponents([.year], from: fechaNacimiento, to: now)
         return ageComponents.year ?? 0
     }
+    
     func isProfileIncomplete() -> Bool {
         let isAgeMissing = self.calculatedAge == 0
-        return direccion == "No especificada" || // Comparamos con los valores por defecto, si no os ha modificado-completado, entonces 'Está Incompleto' el perfil
+        return direccion == "No especificada" ||
         peso == 0.0 ||
         tipoSangre == "N/A" ||
         alergias == "No especificada" ||
@@ -75,5 +81,4 @@ final class User {
         self.alergias = alergias
         self.profileImageData = profileImageData
     }
-    
 }

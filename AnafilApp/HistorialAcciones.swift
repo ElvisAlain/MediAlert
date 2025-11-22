@@ -27,4 +27,5 @@ final class HistorialAcciones {
 enum TipoAccion: String, Codable, CaseIterable { // Enum como definí en la Base de Datos
     case sosCall = "SOS_CALL"
     case profileUpdate = "PROFILE_UPDATE"
+    case expiryWarning = "EXPIRY_WARNING"
 }

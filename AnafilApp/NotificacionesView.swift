@@ -106,9 +106,20 @@ struct NotificacionesView: View {
                         .foregroundStyle(.purple)
                 )
             )
+        case .expiryWarning:
+            NotiCard(
+                titulo: isEnglish ? "Adrenaline Alert" : "Alerta de Adrenalina",
+                detalle: accion.detalle,
+                trailing: AnyView(
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                )
+            )
         }
     }
 }
+
 
 // Componente de tarjeta de notificación
 struct NotiCard: View {

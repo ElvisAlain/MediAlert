@@ -10,70 +10,99 @@ import SwiftData
 import PhotosUI
 
 struct BotiquinView: View {
-    @Query(sort: \User.nombre) var users: [User] // Conexión a SwiftData
+    @Query(sort: \User.nombre) var users: [User]
     var currentUser: User? {users.first}
     
-    // 1. Acceso a Idioma
     var isEnglish: Bool { currentUser?.idiomaSeleccionado == "English" }
     
-    @Environment(\.modelContext) private var modelContext // Para poder borrar Recetas
-    // Estados para las Recetas
+    @Environment(\.modelContext) private var modelContext
+    
+    // Estados recetas
     @State private var newRecetaDate: Date = Date()
     @State private var newRecetaImage: Image?
     @State private var newRecetaImageData: Data?
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showPhotoGallery: Bool = false
+    
+    // Estados Adrenalina
+    @State private var showAddAdrenalina: Bool = false // Modal o toggle
+    @State private var newAdrenalinaDate: Date = Date()
+    
+    // Feedback y Errores
     @State private var error: String?
-    @State private var showSaveConfirmation: Bool = false // Para dar retro al User
+    @State private var showSaveConfirmation: Bool = false
+    @State private var showDeleteConfirmation: Bool = false
+    @State private var itemDeletedMessage: String = ""
     
-    // Estados para Deshacer
-    @State private var showDeleteConfirmation: Bool = false // Deshacer
-    @State private var recetaParaBorrar: RecetaMedica? // La que está en espera
-    @State private var deleteTimer: Timer? // Temporizador
+    // Estados para Deshacer Recetas
+    @State private var recetaParaBorrar: RecetaMedica?
+    @State private var deleteTimer: Timer?
     
-    // Función para Guardar Receta
-    private func saveReceta() {
-        error = nil // Limpiar Error
+    private func saveAdrenalina() {
+        guard let user = currentUser else { return }
         
-        guard let data = newRecetaImageData else { // Validar que haya una imagen
+        // Borrar anterior si existe (asumimos que el usuario reemplaza su adrenalina)
+        if let oldAdrenalina = user.adrenalinas.first {
+            NotificationManager.shared.cancelNotifications(for: oldAdrenalina)
+            modelContext.delete(oldAdrenalina)
+        }
+        
+        let nuevaAdrenalina = Adrenalina(fechaCaducidad: newAdrenalinaDate)
+        user.adrenalinas.append(nuevaAdrenalina)
+        
+        // Programar notificaciones
+        NotificationManager.shared.scheduleAdrenalineNotifications(for: nuevaAdrenalina, isEnglish: isEnglish)
+        
+        showAddAdrenalina = false
+        withAnimation {
+            showSaveConfirmation = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { withAnimation { showSaveConfirmation = false } }
+    }
+    
+    private func deleteAdrenalina(_ adrenalina: Adrenalina) {
+        NotificationManager.shared.cancelNotifications(for: adrenalina)
+        modelContext.delete(adrenalina)
+        itemDeletedMessage = isEnglish ? "Adrenaline removed." : "Adrenalina eliminada."
+        withAnimation { showDeleteConfirmation = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { withAnimation { showDeleteConfirmation = false } }
+    }
+    
+    // Funciones Recetas
+    private func saveReceta() {
+        error = nil
+        guard let data = newRecetaImageData else {
             error = isEnglish ? "Please upload an image of the prescription." : "Por favor, sube una imagen de la receta."
             return
         }
-        guard let user = currentUser else { // Obtener el Usuario
-            error = isEnglish ? "User not found." : "No se pudo encontrar el usuario."
-            return
-        }
-        let newReceta = RecetaMedica(fechaSubida: newRecetaDate, imagenRecetaData: data)
-        user.recetas.append(newReceta) // SwiftData sube el cambio
+        guard let user = currentUser else { return }
         
-        // Limpiar campos
+        let newReceta = RecetaMedica(fechaSubida: newRecetaDate, imagenRecetaData: data)
+        user.recetas.append(newReceta)
+        
         newRecetaDate = Date()
         newRecetaImage = nil
         newRecetaImageData = nil
         selectedPhotoItem = nil
         
-        // Mostrar confirmación
-        withAnimation {
-            showSaveConfirmation = true
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            withAnimation {
-                showSaveConfirmation = false
-            }
-        }
+        withAnimation { showSaveConfirmation = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { withAnimation { showSaveConfirmation = false } }
     }
-    private func deleteReceta(receta: RecetaMedica) { // El usuario pulsa Borrar
+    
+    private func deleteReceta(receta: RecetaMedica) {
         deleteTimer?.invalidate()
         withAnimation {
             showSaveConfirmation = false
             recetaParaBorrar = receta
+            itemDeletedMessage = isEnglish ? "Prescription deleted." : "Receta eliminada."
             showDeleteConfirmation = true
         }
-        deleteTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in // Timer de 3seg | Si no se cancela, se borra de verdad
+        deleteTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
             performActualDelete()
         }
     }
-    private func performActualDelete() { // El timer se acaba y se bora definitivamente
+    
+    private func performActualDelete() {
         if let receta = recetaParaBorrar {
             modelContext.delete(receta)
         }
@@ -81,15 +110,17 @@ struct BotiquinView: View {
         recetaParaBorrar = nil
         deleteTimer = nil
     }
-    private func undoDelete() { // El usuario pulsa 'Deshacer'
+    
+    private func undoDelete() {
         deleteTimer?.invalidate()
         withAnimation { showDeleteConfirmation = false }
         recetaParaBorrar = nil
         deleteTimer = nil
     }
-    private var sortedRecetas: [RecetaMedica] { // Precalcular la lista ordenada
+    
+    private var sortedRecetas: [RecetaMedica] {
         let allRecetas = currentUser?.recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida }) ?? []
-        if let recetaParaBorrar = recetaParaBorrar { // Si hay uno para borrar, no se muestra
+        if let recetaParaBorrar = recetaParaBorrar {
             return allRecetas.filter { $0.id != recetaParaBorrar.id }
         }
         return allRecetas
@@ -123,9 +154,76 @@ struct BotiquinView: View {
                 
                 ZStack(alignment: .top) {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 24) {
                             
-                            // Card: Agregar Receta Médica
+                            // Secc 1: Adrenalina
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(isEnglish ? "Adrenaline" : " Adrenalina")
+                                    .font(.headline).fontWeight(.semibold)
+                                    .foregroundStyle(Color.cmicaBlue)
+                                
+                                if let adrenalina = currentUser?.adrenalinas.first {
+                                    // Tarjeta de Adrenalina Existente
+                                    AdrenalinaCard(adrenalina: adrenalina, isEnglish: isEnglish) {
+                                        deleteAdrenalina(adrenalina)
+                                    }
+                                } else {
+                                    // Botón para agregar si no hay
+                                    if showAddAdrenalina {
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text(isEnglish ? "Expiration Date:" : "Fecha de Caducidad:")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                            
+                                            DatePicker("", selection: $newAdrenalinaDate, displayedComponents: .date)
+                                                .labelsHidden()
+                                                .datePickerStyle(.compact)
+                                                .tint(Color.cmicaBlue)
+                                            
+                                            HStack {
+                                                Button(isEnglish ? "Cancel" : "Cancelar") {
+                                                    withAnimation { showAddAdrenalina = false }
+                                                }
+                                                .foregroundStyle(.red)
+                                                
+                                                Spacer()
+                                                
+                                                Button(isEnglish ? "Save" : "Guardar") {
+                                                    saveAdrenalina()
+                                                }
+                                                .buttonStyle(.borderedProminent)
+                                                .tint(Color.cmicaBlue)
+                                            }
+                                            .padding(.top, 4)
+                                        }
+                                        .padding()
+                                        .background(Color(.systemBackground))
+                                        .cornerRadius(12)
+                                        .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
+                                        
+                                    } else {
+                                        Button(action: {
+                                            newAdrenalinaDate = Date() // Reset fecha
+                                            withAnimation { showAddAdrenalina = true }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: "plus.circle.fill")
+                                                Text(isEnglish ? "Register Adrenaline" : "Registrar Adrenalina")
+                                            }
+                                            .fontWeight(.semibold)
+                                            .padding()
+                                            .frame(maxWidth: .infinity)
+                                            .background(Color.cmicaBlue.opacity(0.1))
+                                            .foregroundColor(Color.cmicaBlue)
+                                            .cornerRadius(12)
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            Divider()
+                            
+                            // Secc 2: Recetas
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(isEnglish ? "Add Medical Prescription" : "Agregar Receta Médica")
                                     .font(.headline).fontWeight(.semibold)
@@ -155,25 +253,24 @@ struct BotiquinView: View {
                                     .cornerRadius(10)
                                 }
                                 
-                                // Selector de Fecha
+                                // Selector de Fecha Receta
                                 DatePicker(isEnglish ? "Date" : "Fecha", selection: $newRecetaDate, in: ...Date(), displayedComponents: .date)
                                     .tint(Color.cmicaBlue)
                                 
-                                // Mostrar Error si hay
                                 if let error = error {
                                     Text(error)
                                         .font(.caption)
                                         .foregroundColor(.red)
                                 }
                                 
-                                Button(isEnglish ? "Add" : "Agregar", action: saveReceta)
+                                Button(isEnglish ? "Add Prescription" : "Agregar Receta", action: saveReceta)
                                     .buttonStyle(.borderedProminent)
                                     .tint(Color.cmicaBlue)
                                     .frame(maxWidth: .infinity)
                             }
                             .cardStyle()
                             
-                            // Card: Mis Recetas Guardadas
+                            // LISTA DE RECETAS
                             VStack(alignment: .leading, spacing: 12) {
                                 Text(isEnglish ? "My Saved Prescriptions" : "Mis Recetas Guardadas")
                                     .font(.headline).fontWeight(.semibold)
@@ -205,9 +302,8 @@ struct BotiquinView: View {
                 
                 // Alertas (Toasts)
                 VStack(spacing: 8) {
-                    // Mensaje de Confirmación
                     if showSaveConfirmation {
-                        Text(isEnglish ? "Prescription saved successfully!" : "¡Receta guardada con éxito!")
+                        Text(isEnglish ? "Saved successfully!" : "¡Guardado con éxito!")
                             .font(.caption.weight(.semibold))
                             .padding(12)
                             .frame(maxWidth: .infinity)
@@ -215,19 +311,22 @@ struct BotiquinView: View {
                             .foregroundStyle(Color.green)
                             .cornerRadius(8)
                             .transition(.opacity.combined(with: .move(edge: .bottom)))
-                            .zIndex(1) // Al frente
+                            .zIndex(1)
                     }
                     if showDeleteConfirmation {
                         HStack{
-                            Text(isEnglish ? "Prescription deleted." : "Receta eliminada.")
+                            Text(itemDeletedMessage)
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(Color.red)
                             Spacer()
-                            Button(isEnglish ? "Undo" : "Deshacer") {
-                                undoDelete()
+                            // El deshacer solo funciona para recetas en esta lógica simple
+                            if deleteTimer != nil {
+                                Button(isEnglish ? "Undo" : "Deshacer") {
+                                    undoDelete()
+                                }
+                                .font(.caption.weight(.bold))
+                                .tint(Color.red)
                             }
-                            .font(.caption.weight(.bold))
-                            .tint(Color.red)
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity)
@@ -260,6 +359,69 @@ struct BotiquinView: View {
                 }
             }
         }
+    }
+}
+
+// Componente visual de la tarjeta de Adrenalina
+struct AdrenalinaCard: View {
+    let adrenalina: Adrenalina
+    let isEnglish: Bool
+    let onDelete: () -> Void
+    
+    var colorEstado: Color {
+        switch adrenalina.estado {
+        case .vigente: return .green
+        case .porCaducar: return .orange
+        case .caducada: return .red
+        }
+    }
+    
+    var textoEstado: String {
+        switch adrenalina.estado {
+        case .vigente: return isEnglish ? "Valid" : "Vigente"
+        case .porCaducar: return isEnglish ? "Expiring Soon" : "Por Caducar"
+        case .caducada: return isEnglish ? "Expired" : "Caducada"
+        }
+    }
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(isEnglish ? "Expiration Date:" : "Fecha de Caducidad:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Text(adrenalina.fechaCaducidad.formatted(date: .long, time: .omitted))
+                    .font(.title3.bold())
+                    .foregroundStyle(Color.primary)
+                
+                HStack {
+                    Image(systemName: adrenalina.estado == .vigente ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                    Text(textoEstado)
+                }
+                .font(.caption.bold())
+                .foregroundStyle(colorEstado)
+                .padding(.top, 2)
+            }
+            
+            Spacer()
+            
+            // Botón Borrar
+            Button(action: onDelete) {
+                Image(systemName: "trash.circle.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(Color.gray.opacity(0.3))
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        // Borde de color según estado
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(colorEstado.opacity(0.5), lineWidth: 2)
+        )
+        .cornerRadius(12)
+        .shadow(color: colorEstado.opacity(0.1), radius: 5, y: 2)
     }
 }
 
@@ -297,19 +459,6 @@ struct RecetaCardView: View {
     }
 }
 
-private struct LabeledField: View {
-    let label: String
-    init(_ label: String) { self.label = label }
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(.subheadline)
-            TextField("", text: .constant(""))
-                .textFieldStyle(.roundedBorder)
-                .frame(height: 36)
-        }
-    }
-}
-
 private struct InfoRow: View {
     let left: String, right: String
     var accent: Color? = nil
@@ -333,9 +482,4 @@ private extension View {
             .cornerRadius(12)
             .shadow(color: .black.opacity(0.08), radius: 6, y: 3)
     }
-}
-
-#Preview {
-    BotiquinView()
-        .modelContainer(for: [User.self, RecetaMedica.self], inMemory: true)
 }
