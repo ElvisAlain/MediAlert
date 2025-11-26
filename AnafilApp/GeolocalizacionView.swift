@@ -126,6 +126,12 @@ struct HospitalRow: View {
     let item: MKMapItem
     var isEnglish: Bool
     
+    // Función para abrir Apple Maps con la ruta
+    private func abrirMapas() {
+        let launchOptions = [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving] // Modo Driving
+        item.openInMaps(launchOptions: launchOptions)
+    }
+    
     var body: some View {
         HStack(spacing: 12) {
             // Icono de Hospital
@@ -143,7 +149,7 @@ struct HospitalRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name ?? (isEnglish ? "Unknown Hospital" : "Hospital Desconocido"))
                     .font(.subheadline).fontWeight(.semibold)
-                    .lineLimit(1)
+                    .lineLimit(2)
                 
                 // Dirección
                 Text(item.placemark.title ?? (isEnglish ? "Location not available" : "Dirección no disponible"))
@@ -160,6 +166,17 @@ struct HospitalRow: View {
             }
             
             Spacer()
+            
+            // Botón de Ruta
+            Button(action: {
+                abrirMapas()
+            }) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.title2)
+                    .foregroundColor(Color.cmicaBlue)
+                    .padding(8)
+                    .contentShape(Rectangle())
+            }
         }
         .padding(12)
         .background(
@@ -169,7 +186,6 @@ struct HospitalRow: View {
         )
     }
 }
-
 #Preview {
     GeolocalizacionView()
         .modelContainer(for: User.self, inMemory: true)
