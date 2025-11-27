@@ -11,65 +11,97 @@ import SwiftData
 struct SOSDragButton: View {
     @Environment(\.modelContext) private var modelContext
     @Query var users: [User]
-    var currentUser: User? {users.first}
+    var currentUser: User? { users.first }
     
-    @State private var offset: CGFloat = 0 // Para el movimiento
-    let limiteActivacion: CGFloat = -80.0 // Negativo es arriba | Lo que debe subir
+    // Estado para la animación de presión
+    @State private var isPressing = false
+    @State private var showHint = false // Para mostrar el mensaje si solo tocan
+    @State private var showCallAlert = false
+    
+    // Configuración
+    let pressDuration: Double = 2.0
     
     var body: some View {
         ZStack {
-            if offset < -10 { // Muestra flechita para arrastrar
-                VStack {
-                    Image(systemName: "chevron.up")
-                        .font(.caption)
-                        .foregroundStyle(.red.opacity(0.5))
-                    Spacer().frame(height: 50)
-                }
-                .transition(.opacity)
-                .animation(.easeInOut, value: offset)
-            }
-            // Botón SOS
+            // Círculo de fondo (animación de progreso/escala)
+            Circle()
+                .fill(Color.red.opacity(0.3))
+                .frame(width: 80, height: 80)
+                .scaleEffect(isPressing ? 1.5 : 1.0) // Crece al presionar
+                .opacity(isPressing ? 1.0 : 0.0)
+                .animation(.easeInOut(duration: pressDuration), value: isPressing)
+            
+            // Botón SOS Principal
             ZStack {
                 Circle()
-                    .fill(Color.red.opacity(0.8))
+                    .fill(Color.red)
                     .shadow(color: .red.opacity(0.4), radius: 6, x: 0, y: 3)
+                
                 Text("SOS")
                     .font(.system(size: 16, weight: .heavy))
                     .foregroundStyle(.white)
             }
             .frame(width: 60, height: 60)
-            .offset(y: offset) // Movimiento
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        let newY = value.translation.height // Solo movimiento hacia arriba y que no suba al 'infinito' (-150 máx.)
-                        if newY < 0 && newY > -150 {
-                            offset = newY
-                        }
-                    }
-                    .onEnded {value in // Al soltar, verificamos si llegó al límite
-                        if value.translation.height <= limiteActivacion {
-                            activarSOS()
-                        } // Animación de rebote para volver al centro
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                            offset = 0
-                        }
-                    }
-            )
+            .scaleEffect(isPressing ? 0.95 : 1.0) // Pequeño efecto de "apretar"
+            .animation(.easeInOut(duration: 0.2), value: isPressing)
+            // Gestos
+            .onLongPressGesture(minimumDuration: pressDuration, pressing: { pressing in
+                // Detecta cuando empieza y termina de presionar
+                withAnimation {
+                    self.isPressing = pressing
+                    if pressing { showHint = false } // Ocultar pista si empieza a presionar bien
+                }
+            }, perform: {
+                // Se ejecuta SOLO si cumplió los 2 segundos
+                activarSOS()
+                // Reset visual
+                isPressing = false
+            })
+            // Gesto de tap: Toque corto
+            .simultaneousGesture(TapGesture().onEnded {
+                withAnimation {
+                    showHint = true
+                }
+                // Ocultar la pista después de 2 segundos
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation { showHint = false }
+                }
+            })
+            
+            // Mensaje de Pista (Hint)
+            if showHint {
+                VStack {
+                    Text(currentUser?.idiomaSeleccionado == "English" ? "Hold for 2s" : "Mantén 2s")
+                        .font(.caption2.bold())
+                        .foregroundColor(.white)
+                        .padding(6)
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(8)
+                        .offset(y: -50)
+                        .transition(.opacity.combined(with: .scale))
+                }
+            }
         }
-        .frame(width: 60, height:60)
+        .frame(width: 80, height: 80)
+        .alert("Modo Simulador", isPresented: $showCallAlert) {
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text("En un iPhone real, esto estaría llamando al: \(currentUser?.contactoEmergencia ?? "Sin numero")")
+                }
     }
     
     private func activarSOS() {
-        let generator = UIImpactFeedbackGenerator(style: .heavy) // FeedBack Hóptico - Vibración
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.impactOccurred()
         
-        guard let user = currentUser else {return} // Guardar Noti
-  
+        guard let user = currentUser else { return }
+        
         let isEnglish = user.idiomaSeleccionado == "English"
+        
+        // Crear Notificación en Historial
         let notiDetail = isEnglish
-            ? "Emergency alert activated via slider button"
-            : "Se ha activado la alerta de emergencia mediante el botón deslizante"
+            ? "Emergency alert activated via SOS button"
+            : "Se ha activado la alerta de emergencia mediante el botón SOS"
         
         let nuevaNoti = HistorialAcciones(
             tipo_accion: .sosCall,
@@ -78,35 +110,18 @@ struct SOSDragButton: View {
         modelContext.insert(nuevaNoti)
         user.historialAcciones.append(nuevaNoti)
         
-        // Preparar la info
+        // Preparar llamada
         let numeroLimpio = user.contactoEmergencia.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
         
-        let mensajeEmergencia: String
-        if isEnglish {
-            mensajeEmergencia = """
-            HELP! I am \(user.nombre). I am having a possible episode of ANAPHYLAXIS.
-            Location: (Current Location)
-            Blood Type: \(user.tipoSangre)
-            Allergies: \(user.alergias)
-            Diagnosis: \(user.diagnostico)
-            """
-        } else {
-            mensajeEmergencia = """
-            ¡AYUDA! soy \(user.nombre). Estoy teniendo un posible episodio de ANAFILAXIA.
-            Ubicación: (Ubicación Actual)
-            Sangre: \(user.tipoSangre)
-            Alergias: \(user.alergias)
-            Diagnóstico: \(user.diagnostico)
-            """
-        }
-        
-        print("Intentando contactar a: \(numeroLimpio)")
-        print("Mensaje preparado: \(mensajeEmergencia)")
+        print("Llamando a emergencia: \(numeroLimpio)")
         
         if let url = URL(string: "tel://\(numeroLimpio)"), UIApplication.shared.canOpenURL(url) {
             UIApplication.shared.open(url)
         } else {
-            print("Error: No se puede realizar la llamada. Probablemente estamos en el simulador...")
+            print("No se puede llamar en simulador.")
+            #if targetEnvironment(simulator)
+            showCallAlert = true
+            #endif
         }
     }
 }

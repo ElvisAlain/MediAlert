@@ -36,6 +36,7 @@ struct BotiquinView: View {
     
     // Estados para Deshacer Recetas
     @State private var recetaParaBorrar: RecetaMedica?
+    @State private var adrenalinaParaBorrar: Adrenalina?
     @State private var deleteTimer: Timer?
     
     private func saveAdrenalina() {
@@ -61,12 +62,20 @@ struct BotiquinView: View {
     }
     
     private func deleteAdrenalina(_ adrenalina: Adrenalina) {
-        NotificationManager.shared.cancelNotifications(for: adrenalina)
-        modelContext.delete(adrenalina)
-        itemDeletedMessage = isEnglish ? "Adrenaline removed." : "Adrenalina eliminada."
-        withAnimation { showDeleteConfirmation = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { withAnimation { showDeleteConfirmation = false } }
-    }
+            // Si había una receta pendiente de borrar, bórrala ya para dar paso a esta acción
+            performActualDelete()
+            deleteTimer?.invalidate()
+            withAnimation {
+                showSaveConfirmation = false
+                adrenalinaParaBorrar = adrenalina // Guardado temporal
+                itemDeletedMessage = isEnglish ? "Adrenaline removed." : "Adrenalina eliminada."
+                showDeleteConfirmation = true // Mostramos el Toast con botón Deshacer
+            }
+            // Iniciamos el temporizador de 3 segundos
+            deleteTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
+                performActualDelete()
+            }
+        }
     
     // Funciones Recetas
     private func saveReceta() {
@@ -102,21 +111,30 @@ struct BotiquinView: View {
         }
     }
     
+    // EEjecutadora para ambos casos
     private func performActualDelete() {
+        // Caso Receta
         if let receta = recetaParaBorrar {
             modelContext.delete(receta)
+            recetaParaBorrar = nil
+        }
+        // Caso Adrenalina
+        if let adrenalina = adrenalinaParaBorrar {
+            NotificationManager.shared.cancelNotifications(for: adrenalina)
+            modelContext.delete(adrenalina)
+            adrenalinaParaBorrar = nil
         }
         withAnimation { showDeleteConfirmation = false }
-        recetaParaBorrar = nil
         deleteTimer = nil
     }
     
     private func undoDelete() {
-        deleteTimer?.invalidate()
-        withAnimation { showDeleteConfirmation = false }
-        recetaParaBorrar = nil
-        deleteTimer = nil
-    }
+            deleteTimer?.invalidate()
+            withAnimation { showDeleteConfirmation = false }
+            recetaParaBorrar = nil
+            adrenalinaParaBorrar = nil
+            deleteTimer = nil
+        }
     
     private var sortedRecetas: [RecetaMedica] {
         let allRecetas = currentUser?.recetas.sorted(by: { $0.fechaSubida > $1.fechaSubida }) ?? []
@@ -162,7 +180,7 @@ struct BotiquinView: View {
                                     .font(.headline).fontWeight(.semibold)
                                     .foregroundStyle(Color.cmicaBlue)
                                 
-                                if let adrenalina = currentUser?.adrenalinas.first {
+                                if let adrenalina = currentUser?.adrenalinas.first, adrenalina.id != adrenalinaParaBorrar?.id {
                                     // Tarjeta de Adrenalina Existente
                                     AdrenalinaCard(adrenalina: adrenalina, isEnglish: isEnglish) {
                                         deleteAdrenalina(adrenalina)

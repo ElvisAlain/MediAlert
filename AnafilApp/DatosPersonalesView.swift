@@ -140,9 +140,9 @@ struct DatosPersonalesView: View {
         
         guard isValid else { return }
         
-        let maxNombre = 25
-        let maxApellidos = 25
-        let maxOtros = 40
+        let maxNombre = 30
+        let maxApellidos = 30
+        let maxOtros = 255
         
         if nombre.count > maxNombre {
             nombreError = isEnglish ? "Name must not exceed \(maxNombre) characters." : "El nombre no debe exceder los \(maxNombre) caracteres."
@@ -350,21 +350,21 @@ struct ChipRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                HStack(spacing: 2) {
+            HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 2) {
                     Text(titulo)
                         .fontWeight(.semibold)
                         .foregroundStyle(Color.cmicaBlue.opacity(0.9))
                         .layoutPriority(1)
                     
                     if editable {
-                        TextField("", text: $text)
+                        // Vertical permite múltiples líneas
+                        TextField("", text: $text, axis: .vertical)
                             .textFieldStyle(.plain)
                             .autocorrectionDisabled(true)
-                            .lineLimit(1)
                     } else {
                         Text(text)
-                            .lineLimit(1)
+                            .fixedSize(horizontal: false, vertical: true) // Permite crecer verticalmente
                     }
                 }
                 Spacer()
@@ -372,10 +372,11 @@ struct ChipRow: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                Capsule()
+                RoundedRectangle(cornerRadius: 16)
                     .fill(editable ? Color.cmicaBlue.opacity(0.1) : Color(.systemGray5))
                     .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
             )
+            
             if let error = error {
                 Text(error)
                     .font(.caption)

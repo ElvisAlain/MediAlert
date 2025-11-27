@@ -77,13 +77,29 @@ struct NotificacionesView: View {
         }
     }
     
-    @ViewBuilder // Helper para construir las tarjetas
+    @ViewBuilder
     private func notiCard(for accion: HistorialAcciones) -> some View {
+        // Detalle dinámico según el tipo de acción y el idioma actual
+        var detalleDinamico: String {
+            switch accion.tipo_accion {
+            case .profileUpdate:
+                return isEnglish
+                    ? "Don't forget to fill in the Personal Data fields, your information is very important."
+                    : "No olvides llenar los campos de Datos Personales, tu información es muy importante."
+            case .sosCall:
+                 return isEnglish
+                    ? "Emergency alert activated via SOS button."
+                    : "Se ha activado la alerta de emergencia mediante el botón SOS."
+            case .expiryWarning:
+                return accion.detalle
+            }
+        }
+
         switch accion.tipo_accion {
         case .profileUpdate:
             NotiCard(
                 titulo: isEnglish ? "Complete Your Data!" : "¡Completa Tus Datos!",
-                detalle: accion.detalle, // El detalle se traduce al momento de CREARSE (en AnafilApp.swift)
+                detalle: detalleDinamico, // Variable Dinámica
                 trailing: AnyView(Image(systemName: "info.circle.fill")
                     .font(.title2)
                     .foregroundStyle(.gray))
@@ -91,7 +107,7 @@ struct NotificacionesView: View {
         case .sosCall:
             NotiCard(
                 titulo: isEnglish ? "SOS Button Activated" : "Botón SOS Activado",
-                detalle: accion.detalle,
+                detalle: detalleDinamico,
                 trailing: AnyView(
                     ZStack {
                         Image(systemName: "iphone.gen3.radiowaves.left.and.right")
@@ -118,6 +134,7 @@ struct NotificacionesView: View {
             )
         }
     }
+    
 }
 
 

@@ -12,12 +12,16 @@ import SwiftData
 struct GeolocalizacionView: View {
     @State private var locationManager = LocationManager()
     
-    // Acceso a Usuario para Idioma
+    // Control de la cámara
+    @State private var cameraPosition: MapCameraPosition = .userLocation(fallback: .automatic)
+    
+    // Control para hacer el zoom automático SOLO la primera vez
+    @State private var hasInitialZoomHappened = false
+    
     @Query(sort: \User.nombre) var users: [User]
     var currentUser: User? { users.first }
     var isEnglish: Bool { currentUser?.idiomaSeleccionado == "English" }
 
-    
     var body: some View {
         VStack(spacing: 0) {
             // 1. HEADER
@@ -38,17 +42,18 @@ struct GeolocalizacionView: View {
             
             // 2. MAPA
             ZStack(alignment: .topTrailing) {
-                Map(position: .constant(.region(locationManager.region))) {
+                Map(position: $cameraPosition) {
                     // Tu posición
-                    Annotation(isEnglish ? "Me" : "Yo", coordinate: locationManager.region.center) {
-                        Image(systemName: "person.circle.fill")
-                            .foregroundColor(Color.cmicaBlue)
-                            .font(.title)
-                            .background(Circle().fill(.white))
-                            .clipShape(Circle())
+                    if let userLocation = locationManager.userLocation {
+                         Annotation(isEnglish ? "Me" : "Yo", coordinate: userLocation.coordinate) {
+                            Image(systemName: "person.circle.fill")
+                                .foregroundColor(Color.cmicaBlue)
+                                .font(.title)
+                                .background(Circle().fill(.white))
+                                .clipShape(Circle())
+                        }
                     }
                     
-                    // Pines de Hospitales
                     ForEach(locationManager.hospitals, id: \.self) { item in
                         Marker(item.name ?? "Hospital", systemImage: "cross.fill", coordinate: item.placemark.coordinate)
                             .tint(.red)
@@ -56,10 +61,17 @@ struct GeolocalizacionView: View {
                 }
                 .frame(height: 320)
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                
-                // Botón para recentrar
+                // DETECTAR CUANDO LLEGAN LOS HOSPITALES PARA HACER ZOOM AUTOMÁTICO
+                .onChange(of: locationManager.hospitals) { _, newHospitals in
+                    if !hasInitialZoomHappened && !newHospitals.isEmpty {
+                        enfocarAreaInteligente()
+                        hasInitialZoomHappened = true
+                    }
+                }
+
+                // Botón para recentrar (Zoom Inteligente)
                 Button(action: {
-                    locationManager.manager.startUpdatingLocation()
+                    enfocarAreaInteligente()
                 }) {
                     Image(systemName: "location.fill")
                         .padding(10)
@@ -73,7 +85,7 @@ struct GeolocalizacionView: View {
             .padding(.horizontal)
             .padding(.top, 8)
             
-            // Aviso Legal
+            // Aviso
             Text(isEnglish
                 ? "Disclaimer: Results are location-based suggestions. We are not responsible for service availability."
                 : "Aviso: Los resultados son sugerencias por ubicación. No nos hacemos responsables de la disponibilidad del servicio.")
@@ -112,12 +124,58 @@ struct GeolocalizacionView: View {
                 }
             }
             
-            // 4. MENÚ INFERIOR
             Spacer(minLength: 0)
             MenuInferior(activeTab: "home")
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+    }
+    
+    // Zoom Inteligente
+    private func enfocarAreaInteligente() {
+        guard let userLoc = locationManager.userLocation else { return }
+        
+        // Si no hay hospitales, solo zoom al usuario (cercano)
+        if locationManager.hospitals.isEmpty {
+            withAnimation {
+                cameraPosition = .region(MKCoordinateRegion(
+                    center: userLoc.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                ))
+            }
+            return
+        }
+        
+        // Si HAY hospitales, tomamos al usuario y a los 3 primeros
+        var coordenadas = [userLoc.coordinate]
+        let top3 = locationManager.hospitals.prefix(3)
+        coordenadas.append(contentsOf: top3.map { $0.placemark.coordinate })
+        
+        // Calcular límites (Bounding Box)
+        let minLat = coordenadas.map { $0.latitude }.min() ?? userLoc.coordinate.latitude
+        let maxLat = coordenadas.map { $0.latitude }.max() ?? userLoc.coordinate.latitude
+        let minLon = coordenadas.map { $0.longitude }.min() ?? userLoc.coordinate.longitude
+        let maxLon = coordenadas.map { $0.longitude }.max() ?? userLoc.coordinate.longitude
+        
+        let centro = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLon + maxLon) / 2
+        )
+        
+        // Calcular el span (distancia) y agregar un margen (x1.4) para que no queden pegados al borde
+        let spanLat = (maxLat - minLat) * 1.4
+        let spanLon = (maxLon - minLon) * 1.4
+        
+        // Evitar que el zoom sea DEMASIADO cerca si todo está junto (mínimo 0.01)
+        let finalSpan = MKCoordinateSpan(
+            latitudeDelta: max(spanLat, 0.01),
+            longitudeDelta: max(spanLon, 0.01)
+        )
+        
+        // Aplicar la cámara
+        withAnimation {
+            cameraPosition = .region(MKCoordinateRegion(center: centro, span: finalSpan))
+        }
     }
 }
 
